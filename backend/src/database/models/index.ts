@@ -1,0 +1,10 @@
+export { User } from './User.model';
+export { Client } from './Client.model';
+export { Unit } from './Unit.model';
+export { WasteType } from './WasteType.model';
+export { Collection } from './Collection.model';
+export { GravimetricData } from './GravimetricData.model';
+export { Image } from './Image.model';
+export { AuditLog } from './AuditLog.model';
+export { LgpdConsent } from './LgpdConsent.model';
+export { Recipient, RecipientType } from './Recipient.model';

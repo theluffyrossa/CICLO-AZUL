@@ -1,0 +1,35 @@
+{
+  "expo": {
+    "name": "CICLO AZUL",
+    "slug": "ciclo-azul",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.cicloazul.app"
+    },
+    "android": {
+      "package": "com.cicloazul.app",
+      "permissions": [
+        "CAMERA",
+        "READ_EXTERNAL_STORAGE",
+        "WRITE_EXTERNAL_STORAGE",
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_COARSE_LOCATION"
+      ]
+    },
+    "web": {},
+    "extra": {
+      "apiUrl": process.env.API_URL,
+      "nodeEnv": process.env.NODE_ENV
+    }
+  }
+}
