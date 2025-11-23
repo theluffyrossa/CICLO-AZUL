@@ -62,7 +62,7 @@ const parseDatabaseUrl = (url: string | undefined): Partial<DatabaseEnvironmentC
 const createDatabaseConfig = (logging: boolean | ((sql: string) => void)): DatabaseEnvironmentConfig => {
   const urlConfig = parseDatabaseUrl(process.env.DATABASE_URL);
 
-  return {
+  const config = {
     username: urlConfig?.username || process.env.DB_USER || 'cicloazul',
     password: urlConfig?.password || process.env.DB_PASSWORD || 'cicloazul123',
     database: urlConfig?.database || process.env.DB_NAME || 'cicloazul',
@@ -77,6 +77,11 @@ const createDatabaseConfig = (logging: boolean | ((sql: string) => void)): Datab
       idle: DEFAULT_DB_POOL_IDLE,
     },
   };
+
+  console.log('[DB Config] Using DATABASE_URL:', !!process.env.DATABASE_URL);
+  console.log('[DB Config] Host:', config.host, 'Port:', config.port);
+
+  return config;
 };
 
 export const databaseConfig: DatabaseConfig = {
