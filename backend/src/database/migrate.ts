@@ -14,7 +14,7 @@ const runMigrationFiles = async (): Promise<void> => {
   try {
     const files = await fs.readdir(migrationsDir);
     const migrationFiles = files
-      .filter((file: string) => file.endsWith('.ts') || file.endsWith('.js'))
+      .filter((file: string) => (file.endsWith('.ts') || file.endsWith('.js')) && !file.endsWith('.d.ts'))
       .sort();
 
     logger.info(`Found ${migrationFiles.length} migration files`);
