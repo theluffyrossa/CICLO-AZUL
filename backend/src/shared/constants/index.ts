@@ -57,3 +57,11 @@ export const SUCCESS_MESSAGES = {
 export const AUDIT_RETENTION_DAYS = 2555;
 export const BACKUP_RETENTION_DAYS = 30;
 export const SESSION_TIMEOUT_MINUTES = 30;
+
+export const BACKUP = {
+  DIR: process.env.BACKUP_DIR || './backups',
+  RETENTION_DAYS: parseInt(process.env.BACKUP_RETENTION_DAYS || '30'),
+  MIN_BACKUPS_TO_KEEP: 5,
+  COMPRESSION: true,
+  PREFIX: 'cicloazul-backup',
+} as const;

@@ -17,6 +17,7 @@ import { imagesRouter } from './modules/images/images.routes';
 import { dashboardRouter } from './modules/dashboard/dashboard.routes';
 import { reportsRouter } from './modules/reports/reports.routes';
 import { recipientsRouter } from './modules/recipients/recipients.routes';
+import backupRouter from './modules/backup/backup.routes';
 
 const createRateLimiter = () => {
   return rateLimit({
@@ -66,6 +67,7 @@ export const createApp = (): Application => {
   app.use(`${appConfig.apiPrefix}/images`, imagesRouter);
   app.use(`${appConfig.apiPrefix}/dashboard`, dashboardRouter);
   app.use(`${appConfig.apiPrefix}/reports`, reportsRouter);
+  app.use(`${appConfig.apiPrefix}/backup`, backupRouter);
 
   app.use(notFoundHandler);
   app.use(errorHandler);
