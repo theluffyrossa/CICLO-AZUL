@@ -42,21 +42,42 @@ const parsePort = (value: string | undefined, defaultValue: number): number => {
   return isNaN(parsed) ? defaultValue : parsed;
 };
 
-const createDatabaseConfig = (logging: boolean | ((sql: string) => void)): DatabaseEnvironmentConfig => ({
-  username: process.env.DB_USER || 'cicloazul',
-  password: process.env.DB_PASSWORD || 'cicloazul123',
-  database: process.env.DB_NAME || 'cicloazul',
-  host: process.env.DB_HOST || 'localhost',
-  port: parsePort(process.env.DB_PORT, 5432),
-  dialect: 'postgres' as Dialect,
-  logging,
-  pool: {
-    max: parsePort(process.env.DB_POOL_MAX, DEFAULT_DB_POOL_MAX),
-    min: parsePort(process.env.DB_POOL_MIN, DEFAULT_DB_POOL_MIN),
-    acquire: DEFAULT_DB_POOL_ACQUIRE,
-    idle: DEFAULT_DB_POOL_IDLE,
-  },
-});
+const parseDatabaseUrl = (url: string | undefined): Partial<DatabaseEnvironmentConfig> | null => {
+  if (!url) return null;
+
+  try {
+    const dbUrl = new URL(url);
+    return {
+      username: dbUrl.username,
+      password: dbUrl.password,
+      database: dbUrl.pathname.slice(1),
+      host: dbUrl.hostname,
+      port: parseInt(dbUrl.port) || 5432,
+    };
+  } catch {
+    return null;
+  }
+};
+
+const createDatabaseConfig = (logging: boolean | ((sql: string) => void)): DatabaseEnvironmentConfig => {
+  const urlConfig = parseDatabaseUrl(process.env.DATABASE_URL);
+
+  return {
+    username: urlConfig?.username || process.env.DB_USER || 'cicloazul',
+    password: urlConfig?.password || process.env.DB_PASSWORD || 'cicloazul123',
+    database: urlConfig?.database || process.env.DB_NAME || 'cicloazul',
+    host: urlConfig?.host || process.env.DB_HOST || 'localhost',
+    port: urlConfig?.port || parsePort(process.env.DB_PORT, 5432),
+    dialect: 'postgres' as Dialect,
+    logging,
+    pool: {
+      max: parsePort(process.env.DB_POOL_MAX, DEFAULT_DB_POOL_MAX),
+      min: parsePort(process.env.DB_POOL_MIN, DEFAULT_DB_POOL_MIN),
+      acquire: DEFAULT_DB_POOL_ACQUIRE,
+      idle: DEFAULT_DB_POOL_IDLE,
+    },
+  };
+};
 
 export const databaseConfig: DatabaseConfig = {
   development: createDatabaseConfig(console.log),
