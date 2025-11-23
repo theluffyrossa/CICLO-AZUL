@@ -44,7 +44,7 @@ const getBackupFiles = async (): Promise<BackupFileInfo[]> => {
   }
 };
 
-const shouldDeleteBackup = (backup: BackupFileInfo, totalBackups: number, index: number): boolean => {
+const shouldDeleteBackup = (backup: BackupFileInfo, _totalBackups: number, index: number): boolean => {
   if (index < BACKUP.MIN_BACKUPS_TO_KEEP) {
     return false;
   }

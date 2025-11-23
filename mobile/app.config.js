@@ -31,6 +31,9 @@ module.exports = {
     },
     web: {},
     extra: {
+      eas: {
+        projectId: 'dddce50c-f078-4626-b7f4-e354d1521180',
+      },
       apiUrl: process.env.API_URL || 'http://localhost:3000/api',
       nodeEnv: process.env.NODE_ENV || 'development',
     },

@@ -4,7 +4,7 @@ import backupService from './backup.service';
 import { sendSuccess } from '../../shared/utils/response.util';
 import { HTTP_STATUS } from '../../shared/constants';
 import { logger } from '../../config/logger.config';
-import AuditLog from '../../database/models/AuditLog.model';
+import { AuditLog } from '../../database/models/AuditLog.model';
 import { AuditAction } from '../../shared/types';
 
 interface AuthRequest extends Request {
@@ -26,14 +26,14 @@ class BackupController {
           userId: req.user.id,
           action: AuditAction.CREATE,
           tableName: 'backups',
-          recordId: result.filename,
+          recordId: null,
           afterData: result,
           ipAddress: req.ip,
           userAgent: req.get('user-agent'),
         });
       }
 
-      sendSuccess(res, result, HTTP_STATUS.CREATED);
+      sendSuccess(res, result, 'Backup created successfully', HTTP_STATUS.CREATED);
     } catch (error) {
       logger.error('[BackupController] Create backup failed:', error);
       next(error);
@@ -95,7 +95,7 @@ class BackupController {
           userId: req.user.id,
           action: AuditAction.UPDATE,
           tableName: 'backups',
-          recordId: filename,
+          recordId: null,
           afterData: result,
           ipAddress: req.ip,
           userAgent: req.get('user-agent'),
@@ -122,7 +122,7 @@ class BackupController {
           userId: req.user.id,
           action: AuditAction.DELETE,
           tableName: 'backups',
-          recordId: filename,
+          recordId: null,
           ipAddress: req.ip,
           userAgent: req.get('user-agent'),
         });
@@ -146,7 +146,7 @@ class BackupController {
           userId: req.user.id,
           action: AuditAction.DELETE,
           tableName: 'backups',
-          recordId: 'cleanup',
+          recordId: null,
           afterData: result,
           ipAddress: req.ip,
           userAgent: req.get('user-agent'),
