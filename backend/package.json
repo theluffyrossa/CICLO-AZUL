@@ -6,8 +6,8 @@
   "scripts": {
     "dev": "nodemon",
     "build": "tsc && tsc-alias",
-    "start": "npm run migrate:prod && node dist/server.js",
-    "start:dev": "node dist/server.js",
+    "start": "npm run seed:safe && node dist/server.js",
+    "seed:safe": "node dist/database/seed.js || true",
     "migrate": "ts-node -r tsconfig-paths/register src/database/migrate.ts",
     "migrate:prod": "node dist/database/migrate.js",
     "seed": "ts-node -r tsconfig-paths/register src/database/seed.ts",
