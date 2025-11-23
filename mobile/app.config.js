@@ -22,12 +22,19 @@ module.exports = {
     android: {
       package: 'com.cicloazul.app',
       permissions: [
+        'INTERNET',
+        'ACCESS_NETWORK_STATE',
         'CAMERA',
         'READ_EXTERNAL_STORAGE',
         'WRITE_EXTERNAL_STORAGE',
         'ACCESS_FINE_LOCATION',
         'ACCESS_COARSE_LOCATION',
       ],
+      usesCleartextTraffic: true,
+      adaptiveIcon: {
+        foregroundImage: './assets/logo.png',
+        backgroundColor: '#FFFFFF',
+      },
     },
     web: {},
     extra: {
