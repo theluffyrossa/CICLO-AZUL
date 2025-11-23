@@ -384,3 +384,4 @@ Todos os componentes implementam acessibilidade completa:
 ## Support
 
 For issues and questions, please contact the development team.
+# CICLO-AZUL
