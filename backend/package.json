@@ -1,6 +1,6 @@
 {
   "name": "@ciclo-azul/backend",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "CICLO AZUL - Backend API for Solid Waste Management",
   "main": "dist/server.js",
   "scripts": {
