@@ -143,15 +143,16 @@ const styles = StyleSheet.create({
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.neutral[50],
-    borderWidth: 1,
-    borderColor: colors.neutral[300],
-    borderRadius: borderRadius.base,
-    paddingHorizontal: spacing.md,
-    minHeight: 60,
+    backgroundColor: colors.white,
+    borderWidth: 1.5,
+    borderColor: colors.border.main,
+    borderRadius: borderRadius.md,
+    paddingHorizontal: spacing['4'],
+    minHeight: 56,
   },
   inputContainerError: {
     borderColor: colors.error.main,
+    backgroundColor: colors.error.light + '10',
   },
   inputContainerDisabled: {
     backgroundColor: colors.neutral[100],

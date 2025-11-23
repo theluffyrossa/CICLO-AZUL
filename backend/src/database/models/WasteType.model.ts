@@ -4,9 +4,12 @@ import {
   Model,
   DataType,
   HasMany,
+  BelongsToMany,
 } from 'sequelize-typescript';
 import { WasteCategory } from '@shared/types';
 import { Collection } from './Collection.model';
+import { Client } from './Client.model';
+import { ClientWasteType } from './ClientWasteType.model';
 
 @Table({
   tableName: 'waste_types',
@@ -59,6 +62,14 @@ export class WasteType extends Model {
     as: 'collections',
   })
   declare collections?: Collection[];
+
+  @BelongsToMany(() => Client, {
+    through: () => ClientWasteType,
+    foreignKey: 'wasteTypeId',
+    otherKey: 'clientId',
+    as: 'clients',
+  })
+  declare clients?: Client[];
 
   toJSON(): Record<string, unknown> {
     const values = { ...this.get() };

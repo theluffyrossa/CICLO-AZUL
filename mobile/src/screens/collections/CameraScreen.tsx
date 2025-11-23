@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import { Camera, CameraType, FlashMode } from 'expo-camera';
 import * as ImagePicker from 'expo-image-picker';
+import * as ImageManipulator from 'expo-image-manipulator';
 import * as Location from 'expo-location';
 import * as Device from 'expo-device';
 import { useRoute, useNavigation, RouteProp } from '@react-navigation/native';
@@ -27,7 +28,7 @@ import { colors, spacing, typography } from '@/theme';
 
 type RouteParams = {
   Camera: {
-    collectionId: number;
+    collectionId: string;
   };
 };
 
@@ -67,6 +68,32 @@ export const CameraScreen: React.FC = () => {
     }
   };
 
+  const compressImage = async (uri: string): Promise<string> => {
+    try {
+      // Redimensiona e comprime a imagem
+      const manipResult = await ImageManipulator.manipulateAsync(
+        uri,
+        [
+          {
+            resize: {
+              width: 1920, // Max width mantém qualidade adequada
+            },
+          },
+        ],
+        {
+          compress: 0.8, // 80% de qualidade (balanço entre qualidade e tamanho)
+          format: ImageManipulator.SaveFormat.JPEG,
+        }
+      );
+
+      return manipResult.uri;
+    } catch (error) {
+      console.error('Erro ao comprimir imagem:', error);
+      // Retorna URI original se falhar na compressão
+      return uri;
+    }
+  };
+
   const takePicture = async (): Promise<void> => {
     if (!cameraRef.current) return;
 
@@ -74,11 +101,13 @@ export const CameraScreen: React.FC = () => {
       AccessibilityInfo.announceForAccessibility('Capturando foto');
 
       const photo = await cameraRef.current.takePictureAsync({
-        quality: 0.8,
+        quality: 0.9, // Qualidade alta inicial, será comprimida depois
         base64: false,
       });
 
-      setCapturedImage(photo.uri);
+      // Comprime a imagem antes de exibir
+      const compressedUri = await compressImage(photo.uri);
+      setCapturedImage(compressedUri);
       AccessibilityInfo.announceForAccessibility('Foto capturada. Revise e confirme o upload');
     } catch (error) {
       console.error('Erro ao tirar foto:', error);
@@ -90,13 +119,15 @@ export const CameraScreen: React.FC = () => {
     try {
       const result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ImagePicker.MediaTypeOptions.Images,
-        quality: 0.8,
+        quality: 0.9,
         allowsEditing: true,
         aspect: [4, 3],
       });
 
       if (!result.canceled && result.assets[0]) {
-        setCapturedImage(result.assets[0].uri);
+        // Comprime a imagem selecionada da galeria
+        const compressedUri = await compressImage(result.assets[0].uri);
+        setCapturedImage(compressedUri);
         AccessibilityInfo.announceForAccessibility('Imagem selecionada da galeria');
       }
     } catch (error) {
@@ -106,7 +137,15 @@ export const CameraScreen: React.FC = () => {
   };
 
   const uploadMutation = useMutation({
-    mutationFn: imagesService.uploadImage,
+    mutationFn: (data: Parameters<typeof imagesService.uploadImage>[0]) => {
+      // Adiciona callback de retry para feedback ao usuário
+      return imagesService.uploadImage(data, (attempt, error) => {
+        const retryMessage = `Tentativa ${attempt} falhou. Tentando novamente...`;
+        setToast({ message: retryMessage, type: 'error' });
+        AccessibilityInfo.announceForAccessibility(retryMessage);
+        console.log(`Upload retry attempt ${attempt}:`, error.message);
+      });
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['images', collectionId] });
       queryClient.invalidateQueries({ queryKey: ['collection', collectionId] });
@@ -120,8 +159,9 @@ export const CameraScreen: React.FC = () => {
     },
     onError: (error) => {
       const message = error instanceof Error ? error.message : 'Erro ao enviar foto';
-      setToast({ message, type: 'error' });
-      AccessibilityInfo.announceForAccessibility(`Erro: ${message}`);
+      const finalMessage = `Falha após todas as tentativas: ${message}`;
+      setToast({ message: finalMessage, type: 'error' });
+      AccessibilityInfo.announceForAccessibility(`Erro: ${finalMessage}`);
     },
   });
 
@@ -188,7 +228,7 @@ export const CameraScreen: React.FC = () => {
 
       const uploadData = {
         uri: capturedImage,
-        collectionId: String(collectionId),
+        collectionId,
         consentGiven: true,
         latitude: location?.latitude,
         longitude: location?.longitude,

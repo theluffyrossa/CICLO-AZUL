@@ -1,370 +1,595 @@
 import { connectDatabase, closeDatabase } from './connection';
 import { logger } from '@config/logger.config';
-import { User, Client, Unit, WasteType, Collection, GravimetricData, Recipient, RecipientType } from './models';
-import { UserRole, WasteCategory, CollectionStatus, GravimetricDataSource } from '@shared/types';
+import { User, Client, Unit, WasteType, Recipient, ClientWasteType } from './models';
+import { UserRole, WasteCategory, RecipientType } from '@shared/types';
 
+/**
+ * SEED INICIAL DO SISTEMA CICLO AZUL
+ *
+ * Este seed cria os dados iniciais necessários para o funcionamento do sistema:
+ * - 1 Usuário Admin
+ * - 2 Clientes Piloto (Parque Rio Formoso e Bacuri)
+ * - 2 Usuários Cliente (um para cada cliente piloto)
+ * - Tipos de Resíduo
+ * - Unidades de coleta
+ *
+ * Todos os dados podem ser gerenciados posteriormente via interface da aplicação.
+ */
+
+// Credenciais dos usuários
+const ADMIN_USERNAME = 'admin';
 const ADMIN_EMAIL = 'admin@cicloazul.com';
-const OPERATOR_EMAIL = 'operator@cicloazul.com';
-const ADMIN_PASSWORD = '1234'; // PIN do Admin
-const OPERATOR_PASSWORD = '5678'; // PIN do Operador
+const ADMIN_PASSWORD = '1234';
 
-const seedUsers = async (): Promise<{ admin: User; operator: User }> => {
-  logger.info('Seeding users...');
+const PARQUE_CLIENT_USERNAME = 'parquerioformoso';
+const PARQUE_CLIENT_EMAIL = 'financeiro@parquerioformoso.com.br';
+const PARQUE_CLIENT_PASSWORD = '1111';
+
+const BACURI_CLIENT_USERNAME = 'bacuri';
+const BACURI_CLIENT_EMAIL = 'bacuricozinharegional@gmail.com';
+const BACURI_CLIENT_PASSWORD = '2222';
+
+/**
+ * Cria o usuário administrador do sistema
+ */
+const seedAdmin = async (): Promise<User> => {
+  logger.info('Creating admin user...');
+
+  const existingAdmin = await User.findOne({ where: { username: ADMIN_USERNAME } });
+  if (existingAdmin) {
+    logger.info('Admin already exists. Skipping...');
+    return existingAdmin;
+  }
 
   const admin = await User.create({
     name: 'Administrador',
+    username: ADMIN_USERNAME,
     email: ADMIN_EMAIL,
     password: ADMIN_PASSWORD,
     role: UserRole.ADMIN,
     active: true,
   });
 
-  const operator = await User.create({
-    name: 'João Silva',
-    email: OPERATOR_EMAIL,
-    password: OPERATOR_PASSWORD,
-    role: UserRole.OPERATOR,
-    active: true,
-  });
-
-  logger.info(`Created users: ${ADMIN_EMAIL}, ${OPERATOR_EMAIL}`);
-  return { admin, operator };
+  logger.info(`✅ Admin created: ${admin.username}`);
+  return admin;
 };
 
+/**
+ * Cria os clientes piloto
+ */
+const seedClients = async (): Promise<Client[]> => {
+  logger.info('Creating pilot clients...');
+
+  const existingClients = await Client.findAll();
+  if (existingClients.length > 0) {
+    logger.info(`Clients already exist (${existingClients.length}). Skipping...`);
+    return existingClients;
+  }
+
+  const clients = await Client.bulkCreate([
+    {
+      name: 'PARQUE ECOLÓGICO RIO FORMOSO LTDA',
+      document: '04.495.804/0001-60',
+      phone: '(67) 98162-5580',
+      email: 'financeiro@parquerioformoso.com.br',
+      address: 'Rodovia Bonito / Guia Lopes Da Laguna, S/N Km 07 - Zona Rural',
+      city: 'Bonito',
+      state: 'MS',
+      zipCode: '79290-000',
+      active: true,
+      notes: 'Cliente Piloto - Parque Ecológico Rio Formoso e Restaurante da Lagoa',
+    },
+    {
+      name: 'C&S BARES E RESTAURANTES LTDA',
+      document: '49.870.410/0001-82',
+      phone: '(67) 98473-8342',
+      email: 'bacuricozinharegional@gmail.com',
+      address: 'Rua 24 de Fevereiro, 2268, Centro',
+      city: 'Bonito',
+      state: 'MS',
+      zipCode: '79290-000',
+      active: true,
+      notes: 'Cliente Piloto - BACURI Cozinha Regional',
+    },
+  ]);
+
+  logger.info(`✅ Created ${clients.length} pilot clients`);
+  return clients;
+};
+
+/**
+ * Cria os usuários dos clientes piloto
+ */
+const seedClientUsers = async (clients: Client[]): Promise<User[]> => {
+  logger.info('Creating client users...');
+
+  const existingParque = await User.findOne({ where: { username: PARQUE_CLIENT_USERNAME } });
+  const existingBacuri = await User.findOne({ where: { username: BACURI_CLIENT_USERNAME } });
+
+  const usersToCreate = [];
+
+  if (!existingParque) {
+    usersToCreate.push({
+      name: 'Administrador Parque Rio Formoso',
+      username: PARQUE_CLIENT_USERNAME,
+      email: PARQUE_CLIENT_EMAIL,
+      password: PARQUE_CLIENT_PASSWORD,
+      role: UserRole.CLIENT,
+      clientId: clients[0].id,
+      active: true,
+    });
+  }
+
+  if (!existingBacuri) {
+    usersToCreate.push({
+      name: 'Administrador Bacuri',
+      username: BACURI_CLIENT_USERNAME,
+      email: BACURI_CLIENT_EMAIL,
+      password: BACURI_CLIENT_PASSWORD,
+      role: UserRole.CLIENT,
+      clientId: clients[1].id,
+      active: true,
+    });
+  }
+
+  const clientUsers = usersToCreate.length > 0
+    ? await User.bulkCreate(usersToCreate, { individualHooks: true })
+    : [];
+
+  logger.info(`✅ Created ${clientUsers.length} client users`);
+  return clientUsers;
+};
+
+/**
+ * Cria os tipos de resíduo do sistema
+ */
 const seedWasteTypes = async (): Promise<WasteType[]> => {
-  logger.info('Seeding waste types...');
+  logger.info('Creating waste types...');
 
   const wasteTypes = await WasteType.bulkCreate([
+    // Tipos do Parque Rio Formoso
     {
-      name: 'Papel e Papelão',
+      name: 'Garrafa Pet',
       category: WasteCategory.RECYCLABLE,
-      description: 'Papel, papelão, jornais, revistas',
+      description: 'Garrafas PET limpas e vazias',
       unit: 'kg',
       active: true,
     },
     {
-      name: 'Plástico',
+      name: 'Plástico Mole',
       category: WasteCategory.RECYCLABLE,
-      description: 'Garrafas PET, embalagens plásticas',
+      description: 'Sacolas plásticas, embalagens flexíveis',
       unit: 'kg',
       active: true,
     },
     {
-      name: 'Metal',
+      name: 'Plástico Duro',
       category: WasteCategory.RECYCLABLE,
-      description: 'Latas de alumínio, ferro, aço',
+      description: 'Embalagens rígidas, potes, tampas',
       unit: 'kg',
       active: true,
     },
     {
-      name: 'Vidro',
+      name: 'Pet Óleo',
       category: WasteCategory.RECYCLABLE,
-      description: 'Garrafas, potes, cacos de vidro',
+      description: 'Garrafas PET contaminadas com óleo',
       unit: 'kg',
       active: true,
     },
     {
-      name: 'Orgânico',
+      name: 'Embalagem Longa Vida',
+      category: WasteCategory.RECYCLABLE,
+      description: 'Caixas Tetra Pak',
+      unit: 'kg',
+      active: true,
+    },
+    {
+      name: 'Latas de Alumínio',
+      category: WasteCategory.RECYCLABLE,
+      description: 'Latas de bebidas',
+      unit: 'kg',
+      active: true,
+    },
+    {
+      name: 'Metais em Geral',
+      category: WasteCategory.RECYCLABLE,
+      description: 'Ferro, aço e outros metais',
+      unit: 'kg',
+      active: true,
+    },
+    {
+      name: 'Papel',
+      category: WasteCategory.RECYCLABLE,
+      description: 'Papel branco, colorido, jornais',
+      unit: 'kg',
+      active: true,
+    },
+    {
+      name: 'Cartonagem',
+      category: WasteCategory.RECYCLABLE,
+      description: 'Caixas de papel, cartolinas',
+      unit: 'kg',
+      active: true,
+    },
+    {
+      name: 'Papelão',
+      category: WasteCategory.RECYCLABLE,
+      description: 'Caixas de papelão ondulado',
+      unit: 'kg',
+      active: true,
+    },
+    {
+      name: 'Rejeito',
+      category: WasteCategory.OTHER,
+      description: 'Material sem possibilidade de reaproveitamento',
+      unit: 'kg',
+      active: true,
+    },
+    {
+      name: 'Orgânicos',
       category: WasteCategory.ORGANIC,
       description: 'Restos de alimentos, cascas, folhas',
       unit: 'kg',
       active: true,
     },
     {
-      name: 'Eletrônico',
-      category: WasteCategory.ELECTRONIC,
-      description: 'Computadores, celulares, eletrodomésticos',
-      unit: 'unidade',
-      active: true,
-    },
-    {
-      name: 'Pilhas e Baterias',
-      category: WasteCategory.HAZARDOUS,
-      description: 'Pilhas, baterias de celular e notebook',
+      name: 'Isopor',
+      category: WasteCategory.RECYCLABLE,
+      description: 'Embalagens de isopor limpo',
       unit: 'kg',
       active: true,
     },
     {
-      name: 'Entulho',
-      category: WasteCategory.CONSTRUCTION,
-      description: 'Resíduos de construção civil',
-      unit: 'm³',
+      name: 'Caixotes',
+      category: WasteCategory.RECYCLABLE,
+      description: 'Caixotes de madeira',
+      unit: 'unidade',
+      active: true,
+    },
+    {
+      name: 'Tampinha de Garrafa',
+      category: WasteCategory.RECYCLABLE,
+      description: 'Tampas plásticas de garrafas',
+      unit: 'kg',
+      active: true,
+    },
+    {
+      name: 'Vidro',
+      category: WasteCategory.RECYCLABLE,
+      description: 'Garrafas, potes e cacos de vidro',
+      unit: 'kg',
+      active: true,
+    },
+    {
+      name: 'Neoprene',
+      category: WasteCategory.RECYCLABLE,
+      description: 'Material de neoprene',
+      unit: 'kg',
+      active: true,
+    },
+    // Tipos adicionais do Bacuri
+    {
+      name: 'Alimentação Animal',
+      category: WasteCategory.ORGANIC,
+      description: 'Resíduos orgânicos destinados à alimentação animal',
+      unit: 'kg',
+      active: true,
+    },
+    {
+      name: 'Óleo',
+      category: WasteCategory.HAZARDOUS,
+      description: 'Óleo de cozinha usado',
+      unit: 'L',
+      active: true,
+    },
+    {
+      name: 'Alumínio',
+      category: WasteCategory.RECYCLABLE,
+      description: 'Latas e embalagens de alumínio',
+      unit: 'kg',
       active: true,
     },
   ]);
 
-  logger.info(`Created ${wasteTypes.length} waste types`);
+  logger.info(`✅ Created ${wasteTypes.length} waste types`);
   return wasteTypes;
 };
 
-const seedClients = async (): Promise<Client[]> => {
-  logger.info('Seeding clients...');
-
-  const clients = await Client.bulkCreate([
-    {
-      name: 'Empresa ABC Ltda',
-      document: '12.345.678/0001-90',
-      phone: '(11) 98765-4321',
-      email: 'contato@empresaabc.com.br',
-      address: 'Rua das Flores, 123',
-      city: 'São Paulo',
-      state: 'SP',
-      zipCode: '01234-567',
-      active: true,
-    },
-    {
-      name: 'Indústria XYZ S.A.',
-      document: '98.765.432/0001-10',
-      phone: '(11) 91234-5678',
-      email: 'ambiental@industriaxyz.com.br',
-      address: 'Av. Industrial, 4567',
-      city: 'São Paulo',
-      state: 'SP',
-      zipCode: '08765-432',
-      active: true,
-    },
-    {
-      name: 'Comércio 123 ME',
-      document: '11.222.333/0001-44',
-      phone: '(11) 97777-8888',
-      email: 'comercio123@email.com',
-      address: 'Rua do Comércio, 456',
-      city: 'Guarulhos',
-      state: 'SP',
-      zipCode: '07000-100',
-      active: true,
-    },
-  ]);
-
-  logger.info(`Created ${clients.length} clients`);
-  return clients;
-};
-
+/**
+ * Cria as unidades de coleta dos clientes
+ */
 const seedUnits = async (clients: Client[]): Promise<Unit[]> => {
-  logger.info('Seeding units...');
+  logger.info('Creating collection units...');
 
   const units = await Unit.bulkCreate([
     {
       clientId: clients[0].id,
-      name: 'Matriz',
-      type: 'Escritório',
-      address: 'Rua das Flores, 123',
-      city: 'São Paulo',
-      state: 'SP',
-      zipCode: '01234-567',
-      latitude: -23.550520,
-      longitude: -46.633308,
-      responsibleName: 'João Silva',
-      responsiblePhone: '(11) 99999-1111',
-      active: true,
-    },
-    {
-      clientId: clients[0].id,
-      name: 'Filial Centro',
-      type: 'Loja',
-      address: 'Av. Paulista, 1000',
-      city: 'São Paulo',
-      state: 'SP',
-      zipCode: '01310-100',
-      latitude: -23.561684,
-      longitude: -46.656140,
-      responsibleName: 'Maria Santos',
-      responsiblePhone: '(11) 99999-2222',
+      name: 'Ponto 1 - Pq Eco',
+      type: 'Parque Ecológico',
+      address: 'Rodovia Bonito / Guia Lopes Da Laguna, S/N Km 07 - Zona Rural',
+      city: 'Bonito',
+      state: 'MS',
+      zipCode: '79290-000',
+      latitude: -21.1296,
+      longitude: -56.4731,
+      responsibleName: 'Responsável Parque',
+      responsiblePhone: '(67) 98162-5580',
       active: true,
     },
     {
       clientId: clients[1].id,
-      name: 'Fábrica Principal',
-      type: 'Indústria',
-      address: 'Av. Industrial, 4567',
-      city: 'São Paulo',
-      state: 'SP',
-      zipCode: '08765-432',
-      latitude: -23.496404,
-      longitude: -46.840576,
-      responsibleName: 'Pedro Oliveira',
-      responsiblePhone: '(11) 99999-3333',
-      active: true,
-    },
-    {
-      clientId: clients[2].id,
-      name: 'Loja Principal',
-      type: 'Comércio',
-      address: 'Rua do Comércio, 456',
-      city: 'Guarulhos',
-      state: 'SP',
-      zipCode: '07000-100',
-      latitude: -23.462006,
-      longitude: -46.533401,
-      responsibleName: 'Ana Costa',
-      responsiblePhone: '(11) 99999-4444',
+      name: 'Ponto 1 - Restaurante Bacuri',
+      type: 'Restaurante',
+      address: 'Rua 24 de Fevereiro, 2268, Centro',
+      city: 'Bonito',
+      state: 'MS',
+      zipCode: '79290-000',
+      latitude: -21.1269,
+      longitude: -56.4286,
+      responsibleName: 'Responsável Bacuri',
+      responsiblePhone: '(67) 98473-8342',
       active: true,
     },
   ]);
 
-  logger.info(`Created ${units.length} units`);
+  logger.info(`✅ Created ${units.length} collection units`);
   return units;
 };
 
-const seedRecipients = async (): Promise<Recipient[]> => {
-  logger.info('Seeding recipients...');
+/**
+ * Cria os destinatários do sistema
+ */
+const seedRecipients = async (clients: Client[]): Promise<Recipient[]> => {
+  logger.info('Creating recipients...');
 
   const recipients = await Recipient.bulkCreate([
     {
-      name: 'Ciclo Azul Consultoria, Assessoria e Gestão Ambiental LTDA - Clube da Compostagem',
+      clientId: null,
+      name: 'Ciclo Azul Consultoria, Assessoria e Gestão Ambiental LTDA',
       type: RecipientType.COMPOSTING_CENTER,
       document: '36.940.762/0001-15',
+      secondaryDocument: null,
+      address: null,
+      city: 'Bonito',
+      state: 'MS',
+      zipCode: null,
+      phone: null,
+      email: null,
+      responsibleName: null,
+      responsiblePhone: null,
+      notes: 'Clube da Compostagem - Recipient Global (disponível para todos)',
+      acceptedWasteTypes: ['Orgânicos'],
       active: true,
-      notes: 'Centro de compostagem especializado em resíduos orgânicos',
     },
     {
+      clientId: clients[0].id,
       name: 'Maria Aparecida da Silva Souza',
       type: RecipientType.INDIVIDUAL,
       document: '954.154.161-53',
+      secondaryDocument: null,
+      address: null,
+      city: 'Bonito',
+      state: 'MS',
+      zipCode: null,
+      phone: null,
+      email: null,
+      responsibleName: null,
+      responsiblePhone: null,
+      notes: 'Recipient específico do Parque Rio Formoso',
+      acceptedWasteTypes: null,
       active: true,
     },
     {
+      clientId: clients[0].id,
       name: 'Maria de Fatima Nascimento',
       type: RecipientType.INDIVIDUAL,
-      document: '75767058920',
-      secondaryDocument: '12.472.246/0001-45',
+      document: '12.472.246/0001-45',
+      secondaryDocument: '75767058920',
+      address: null,
+      city: 'Bonito',
+      state: 'MS',
+      zipCode: null,
+      phone: null,
+      email: null,
+      responsibleName: null,
+      responsiblePhone: null,
+      notes: 'Recipient específico do Parque Rio Formoso',
+      acceptedWasteTypes: null,
       active: true,
-    },
-    {
-      name: 'MARINALVA DOS SANTOS',
-      type: RecipientType.INDIVIDUAL,
-      document: '02958328198',
-      secondaryDocument: '42.172.344/0001-28',
-      active: true,
-    },
-    {
-      name: 'Aterro Sanitário de Jardim - Consórcio Intermunicipal',
-      type: RecipientType.LANDFILL,
-      active: true,
-      notes: 'Aterro sanitário municipal',
-    },
-    {
-      name: 'Associação de Recicladores de Lixo Eletro Eletrônicos de Mato Grosso do Sul',
-      type: RecipientType.RECYCLING_ASSOCIATION,
-      document: '19.913.566/0001-32',
-      active: true,
-      notes: 'Especializada em reciclagem de eletrônicos',
-    },
-  ]);
-
-  logger.info(`Created ${recipients.length} recipients`);
-  return recipients;
-};
-
-const seedCollections = async (
-  users: { admin: User; operator: User },
-  clients: Client[],
-  units: Unit[],
-  wasteTypes: WasteType[],
-  recipients: Recipient[]
-): Promise<Collection[]> => {
-  logger.info('Seeding collections...');
-
-  const now = new Date();
-  const yesterday = new Date(now.getTime() - 86400000);
-  const twoDaysAgo = new Date(now.getTime() - 172800000);
-
-  const collections = await Collection.bulkCreate([
-    {
-      clientId: clients[0].id,
-      unitId: units[0].id,
-      wasteTypeId: wasteTypes[0].id,
-      userId: users.operator.id,
-      recipientId: recipients[1].id,
-      collectionDate: twoDaysAgo,
-      status: CollectionStatus.COMPLETED,
-      notes: 'Coleta realizada sem problemas',
-      latitude: -23.550520,
-      longitude: -46.633308,
-    },
-    {
-      clientId: clients[0].id,
-      unitId: units[1].id,
-      wasteTypeId: wasteTypes[1].id,
-      userId: users.operator.id,
-      recipientId: recipients[5].id,
-      collectionDate: yesterday,
-      status: CollectionStatus.COMPLETED,
-      notes: 'Grande volume de plástico',
     },
     {
       clientId: clients[1].id,
-      unitId: units[2].id,
-      wasteTypeId: wasteTypes[4].id,
-      userId: users.operator.id,
-      recipientId: recipients[0].id,
-      collectionDate: yesterday,
-      status: CollectionStatus.COMPLETED,
-      notes: 'Resíduo orgânico da cantina',
+      name: 'MARINALVA DOS SANTOS',
+      type: RecipientType.INDIVIDUAL,
+      document: '42.172.344/0001-28',
+      secondaryDocument: '02958328198',
+      address: null,
+      city: 'Bonito',
+      state: 'MS',
+      zipCode: null,
+      phone: null,
+      email: null,
+      responsibleName: null,
+      responsiblePhone: null,
+      notes: 'Recipient específico do Bacuri',
+      acceptedWasteTypes: null,
+      active: true,
     },
     {
-      clientId: clients[2].id,
-      unitId: units[3].id,
-      wasteTypeId: wasteTypes[2].id,
-      userId: users.operator.id,
-      recipientId: recipients[4].id,
-      collectionDate: now,
-      status: CollectionStatus.IN_PROGRESS,
-      notes: 'Coleta em andamento',
+      clientId: null,
+      name: 'Aterro Sanitário de Jardim - Consórcio Intermunicipal',
+      type: RecipientType.LANDFILL,
+      document: null,
+      secondaryDocument: null,
+      address: null,
+      city: 'Jardim',
+      state: 'MS',
+      zipCode: null,
+      phone: null,
+      email: null,
+      responsibleName: null,
+      responsiblePhone: null,
+      notes: 'Recipient Global (disponível para todos)',
+      acceptedWasteTypes: ['Rejeito'],
+      active: true,
+    },
+    {
+      clientId: null,
+      name: 'Associação de Recicladores de Lixo Eletro Eletrônicos de Mato Grosso do Sul',
+      type: RecipientType.RECYCLING_ASSOCIATION,
+      document: '19.913.566/0001-32',
+      secondaryDocument: null,
+      address: null,
+      city: null,
+      state: 'MS',
+      zipCode: null,
+      phone: null,
+      email: null,
+      responsibleName: null,
+      responsiblePhone: null,
+      notes: 'Recipient Global (disponível para todos)',
+      acceptedWasteTypes: ['Metais em Geral', 'Alumínio'],
+      active: true,
+    },
+    {
+      clientId: null,
+      name: 'Doação',
+      type: RecipientType.OTHER,
+      document: null,
+      secondaryDocument: null,
+      address: null,
+      city: null,
+      state: null,
+      zipCode: null,
+      phone: null,
+      email: null,
+      responsibleName: null,
+      responsiblePhone: null,
+      notes: 'Destinatário genérico para doações - Recipient Global (disponível para todos)',
+      acceptedWasteTypes: null,
+      active: true,
     },
   ]);
 
-  logger.info(`Created ${collections.length} collections`);
-  return collections;
+  logger.info(`✅ Created ${recipients.length} recipients`);
+  return recipients;
 };
 
-const seedGravimetricData = async (collections: Collection[]): Promise<void> => {
-  logger.info('Seeding gravimetric data...');
+const seedClientWasteTypes = async (
+  clients: Client[],
+  wasteTypes: WasteType[]
+): Promise<void> => {
+  logger.info('Creating client-waste type associations...');
 
-  await GravimetricData.bulkCreate([
-    {
-      collectionId: collections[0].id,
-      weightKg: 45.5,
-      source: GravimetricDataSource.MANUAL,
-    },
-    {
-      collectionId: collections[1].id,
-      weightKg: 78.2,
-      source: GravimetricDataSource.MANUAL,
-    },
-    {
-      collectionId: collections[2].id,
-      weightKg: 120.0,
-      source: GravimetricDataSource.SCALE,
-      deviceId: 'SCALE-001',
-    },
-  ]);
+  const wasteTypeMap = new Map(wasteTypes.map((wt) => [wt.name, wt]));
 
-  logger.info('Created gravimetric data entries');
+  const parqueWasteTypes = [
+    'Garrafa Pet',
+    'Plástico Mole',
+    'Plástico Duro',
+    'Pet Óleo',
+    'Embalagem Longa Vida',
+    'Latas de Alumínio',
+    'Metais em Geral',
+    'Papel',
+    'Cartonagem',
+    'Papelão',
+    'Rejeito',
+    'Orgânicos',
+    'Isopor',
+    'Caixotes',
+    'Tampinha de Garrafa',
+    'Vidro',
+    'Neoprene',
+  ];
+
+  const bacuriWasteTypes = [
+    'Orgânicos',
+    'Alimentação Animal',
+    'Rejeito',
+    'Pet Óleo',
+    'Plástico Mole',
+    'Plástico Duro',
+    'Alumínio',
+    'Vidro',
+    'Papelão',
+    'Papel',
+    'Cartonagem',
+    'Embalagem Longa Vida',
+    'Óleo',
+    'Caixotes',
+    'Isopor',
+    'Metais em Geral',
+    'Latas de Alumínio',
+  ];
+
+  const parqueAssociations = [];
+  for (const wasteName of parqueWasteTypes) {
+    const wasteType = wasteTypeMap.get(wasteName);
+    if (wasteType) {
+      parqueAssociations.push({
+        clientId: clients[0].id,
+        wasteTypeId: wasteType.id,
+        active: true,
+      });
+    }
+  }
+
+  const bacuriAssociations = [];
+  for (const wasteName of bacuriWasteTypes) {
+    const wasteType = wasteTypeMap.get(wasteName);
+    if (wasteType) {
+      bacuriAssociations.push({
+        clientId: clients[1].id,
+        wasteTypeId: wasteType.id,
+        active: true,
+      });
+    }
+  }
+
+  const allAssociations = [...parqueAssociations, ...bacuriAssociations];
+  await ClientWasteType.bulkCreate(allAssociations, { ignoreDuplicates: true });
+
+  logger.info(`✅ Created ${allAssociations.length} client-waste type associations`);
+  logger.info(`   - Parque Rio Formoso: ${parqueAssociations.length} waste types`);
+  logger.info(`   - Bacuri: ${bacuriAssociations.length} waste types`);
 };
 
 const runSeeds = async (): Promise<void> => {
   try {
-    logger.info('Starting database seeding...');
+    logger.info('🌱 Starting CICLO AZUL database seeding...');
+    logger.info('='.repeat(60));
 
     await connectDatabase();
 
-    const users = await seedUsers();
-    const wasteTypes = await seedWasteTypes();
+    await seedAdmin();
     const clients = await seedClients();
-    const units = await seedUnits(clients);
-    const recipients = await seedRecipients();
-    const collections = await seedCollections(users, clients, units, wasteTypes, recipients);
-    await seedGravimetricData(collections);
+    await seedClientUsers(clients);
+    const wasteTypes = await seedWasteTypes();
+    await seedUnits(clients);
+    await seedRecipients(clients);
+    await seedClientWasteTypes(clients, wasteTypes);
 
+    logger.info('='.repeat(60));
     logger.info('✅ Database seeding completed successfully!');
-    logger.info('\nDefault credentials:');
-    logger.info(`Admin: ${ADMIN_EMAIL} / ${ADMIN_PASSWORD}`);
-    logger.info(`Operator: ${OPERATOR_EMAIL} / ${OPERATOR_PASSWORD}`);
+    logger.info('\n📋 DADOS DE ACESSO:');
+    logger.info('='.repeat(60));
+    logger.info(`\n👤 ADMINISTRADOR:`);
+    logger.info(`   Usuário: ${ADMIN_USERNAME}`);
+    logger.info(`   PIN: ${ADMIN_PASSWORD}`);
+    logger.info(`\n🏢 CLIENTE PILOTO 1 - PARQUE RIO FORMOSO:`);
+    logger.info(`   Usuário: ${PARQUE_CLIENT_USERNAME}`);
+    logger.info(`   PIN: ${PARQUE_CLIENT_PASSWORD}`);
+    logger.info(`\n🏢 CLIENTE PILOTO 2 - BACURI:`);
+    logger.info(`   Usuário: ${BACURI_CLIENT_USERNAME}`);
+    logger.info(`   PIN: ${BACURI_CLIENT_PASSWORD}`);
+    logger.info('\n' + '='.repeat(60));
+    logger.info('⚠️  IMPORTANTE: Altere as senhas após o primeiro login!');
+    logger.info('='.repeat(60));
 
     process.exit(0);
   } catch (error) {
-    logger.error('Database seeding failed:', error);
+    logger.error('❌ Database seeding failed:', error);
     process.exit(1);
   } finally {
     await closeDatabase();

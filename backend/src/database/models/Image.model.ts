@@ -31,9 +31,37 @@ export class Image extends Model {
   @Column({
     type: DataType.STRING(500),
     allowNull: false,
-    comment: 'File path or URL',
+    comment: 'File path or URL - Original size',
   })
   declare url: string;
+
+  @Column({
+    type: DataType.STRING(500),
+    allowNull: true,
+    comment: 'URL for medium size thumbnail (800px)',
+  })
+  declare urlMedium: string | null;
+
+  @Column({
+    type: DataType.STRING(500),
+    allowNull: true,
+    comment: 'URL for small size thumbnail (400px)',
+  })
+  declare urlSmall: string | null;
+
+  @Column({
+    type: DataType.STRING(500),
+    allowNull: true,
+    comment: 'URL for thumbnail (200px)',
+  })
+  declare urlThumbnail: string | null;
+
+  @Column({
+    type: DataType.STRING(255),
+    allowNull: true,
+    comment: 'S3 key for cloud storage',
+  })
+  declare storageKey: string | null;
 
   @Column({
     type: DataType.STRING(255),

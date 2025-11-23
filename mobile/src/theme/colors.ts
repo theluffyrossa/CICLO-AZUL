@@ -1,95 +1,99 @@
 export const colors = {
+  // Paleta principal - Tons de azul modernos inspirados no tema "CICLO AZUL"
   primary: {
-    50: '#E3F2FD',
-    100: '#BBDEFB',
-    200: '#90CAF9',
-    300: '#64B5F6',
-    400: '#42A5F5',
-    500: '#2196F3',
-    600: '#1E88E5',
-    700: '#1976D2',
-    800: '#1565C0',
-    900: '#0D47A1',
+    50: '#EBF5FF',
+    100: '#D6EBFF',
+    200: '#ADD6FF',
+    300: '#7AB8FF',
+    400: '#4A9EFF',
+    500: '#2B87F5',
+    600: '#1E6FDB',
+    700: '#1557B0',
+    800: '#0F4485',
+    900: '#0A2E5C',
   },
 
+  // Azul secundário - Tons complementares de azul
   secondary: {
-    50: '#E8F5E9',
-    100: '#C8E6C9',
-    200: '#A5D6A7',
-    300: '#81C784',
-    400: '#66BB6A',
-    500: '#4CAF50',
-    600: '#43A047',
-    700: '#388E3C',
-    800: '#2E7D32',
-    900: '#1B5E20',
+    50: '#E0F2FE',
+    100: '#BAE6FD',
+    200: '#7DD3FC',
+    300: '#38BDF8',
+    400: '#0EA5E9',
+    500: '#0284C7',
+    600: '#0369A1',
+    700: '#075985',
+    800: '#0C4A6E',
+    900: '#082F49',
   },
 
+  // Cores de status - Todas em tons de azul
   success: {
-    light: '#81C784',
-    main: '#4CAF50',
-    dark: '#388E3C',
+    light: '#7DD3FC',
+    main: '#0EA5E9',
+    dark: '#0369A1',
   },
 
   error: {
-    light: '#E57373',
-    main: '#F44336',
-    dark: '#D32F2F',
+    light: '#FCA5A5',
+    main: '#EF4444',
+    dark: '#DC2626',
   },
 
   warning: {
-    light: '#FFB74D',
-    main: '#FF9800',
-    dark: '#F57C00',
+    light: '#FCD34D',
+    main: '#F59E0B',
+    dark: '#D97706',
   },
 
   info: {
-    light: '#64B5F6',
-    main: '#2196F3',
-    dark: '#1976D2',
+    light: '#ADD6FF',
+    main: '#2B87F5',
+    dark: '#1557B0',
   },
 
-  gray: {
-    50: '#FAFAFA',
-    100: '#F5F5F5',
-    200: '#EEEEEE',
-    300: '#E0E0E0',
-    400: '#BDBDBD',
-    500: '#9E9E9E',
-    600: '#757575',
-    700: '#616161',
-    800: '#424242',
-    900: '#212121',
-  },
-
+  // Tons neutros refinados
   neutral: {
-    50: '#FAFAFA',
-    100: '#F5F5F5',
-    200: '#EEEEEE',
-    300: '#E0E0E0',
-    400: '#BDBDBD',
-    500: '#9E9E9E',
-    600: '#757575',
-    700: '#616161',
-    800: '#424242',
-    900: '#212121',
+    50: '#F8FAFC',
+    100: '#F1F5F9',
+    200: '#E2E8F0',
+    300: '#CBD5E1',
+    400: '#94A3B8',
+    500: '#64748B',
+    600: '#475569',
+    700: '#334155',
+    800: '#1E293B',
+    900: '#0F172A',
   },
 
+  // Backgrounds modernos
   background: {
-    default: '#FAFAFA',
+    default: '#F8FAFC',
     paper: '#FFFFFF',
-    dark: '#121212',
+    secondary: '#F1F5F9',
+    dark: '#0F172A',
   },
 
+  // Textos com melhor contraste
   text: {
-    primary: '#212121',
-    secondary: '#757575',
-    disabled: '#BDBDBD',
+    primary: '#0F172A',
+    secondary: '#475569',
+    tertiary: '#94A3B8',
+    disabled: '#CBD5E1',
     white: '#FFFFFF',
+    inverse: '#F8FAFC',
   },
 
-  divider: '#E0E0E0',
+  // Bordas e divisores sutis
+  border: {
+    light: '#E2E8F0',
+    main: '#CBD5E1',
+    dark: '#94A3B8',
+  },
 
+  divider: '#E2E8F0',
+
+  // Cores base
   white: '#FFFFFF',
   black: '#000000',
   transparent: 'transparent',

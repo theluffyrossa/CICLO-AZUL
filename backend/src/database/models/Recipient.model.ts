@@ -9,8 +9,11 @@ import {
   UpdatedAt,
   DeletedAt,
   HasMany,
+  ForeignKey,
+  BelongsTo,
 } from 'sequelize-typescript';
 import { Collection } from './Collection.model';
+import { Client } from './Client.model';
 
 export enum RecipientType {
   COMPOSTING_CENTER = 'COMPOSTING_CENTER',
@@ -34,6 +37,13 @@ export class Recipient extends Model {
     type: DataType.UUID,
   })
   declare id: string;
+
+  @ForeignKey(() => Client)
+  @Column({
+    type: DataType.UUID,
+    allowNull: true,
+  })
+  declare clientId: string | null;
 
   @Column({
     type: DataType.STRING(255),
@@ -125,6 +135,12 @@ export class Recipient extends Model {
     allowNull: true,
   })
   declare acceptedWasteTypes: string[] | null;
+
+  @BelongsTo(() => Client, {
+    foreignKey: 'clientId',
+    as: 'client',
+  })
+  declare client?: Client;
 
   @HasMany(() => Collection, {
     foreignKey: 'recipientId',

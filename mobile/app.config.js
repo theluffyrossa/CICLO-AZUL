@@ -7,12 +7,12 @@ module.exports = {
     slug: 'ciclo-azul',
     version: '1.0.0',
     orientation: 'portrait',
-    icon: './assets/icon.svg',
+    icon: './assets/logo.png',
     userInterfaceStyle: 'light',
     splash: {
-      image: './assets/splash.svg',
+      image: './assets/logo.png',
       resizeMode: 'contain',
-      backgroundColor: '#0D47A1',
+      backgroundColor: '#FFFFFF',
     },
     assetBundlePatterns: ['**/*'],
     ios: {

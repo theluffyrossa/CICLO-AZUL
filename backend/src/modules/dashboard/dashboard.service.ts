@@ -6,10 +6,12 @@ import {
   WasteType,
   GravimetricData,
 } from '@database/models';
+import { ApprovalStatus } from '@shared/types';
 import {
   DashboardData,
   DashboardSummary,
   WasteTypeDistribution,
+  TreatmentTypeDistribution,
   TopUnit,
   DashboardFilters,
 } from './dashboard.types';
@@ -20,15 +22,17 @@ export class DashboardService {
   async getDashboardData(filters: DashboardFilters): Promise<DashboardData> {
     const dateFilter = this.buildDateFilter(filters);
 
-    const [summary, wasteTypeDistribution, topUnits] = await Promise.all([
+    const [summary, wasteTypeDistribution, treatmentTypeDistribution, topUnits] = await Promise.all([
       this.getSummary(dateFilter, filters.clientId),
       this.getWasteTypeDistribution(dateFilter, filters.clientId),
+      this.getTreatmentTypeDistribution(dateFilter, filters.clientId),
       this.getTopUnits(dateFilter, filters.clientId),
     ]);
 
     return {
       summary,
       wasteTypeDistribution,
+      treatmentTypeDistribution,
       collectionsByPeriod: [],
       weightEvolution: [],
       topUnits,
@@ -39,57 +43,65 @@ export class DashboardService {
     dateFilter: Record<string, unknown>,
     clientId?: string
   ): Promise<DashboardSummary> {
-    const whereConditions = { ...dateFilter };
+    const whereConditions: Record<string, unknown> = {
+      ...dateFilter,
+      approvalStatus: ApprovalStatus.APPROVED,
+    };
     if (clientId) {
       whereConditions.clientId = clientId;
     }
 
-    const [collections, totalWeight, activeClients, activeUnits] = await Promise.all([
+    const clientFilter = clientId ? { active: true, id: clientId } : { active: true };
+    const unitFilter = clientId ? { active: true, clientId } : { active: true };
+
+    const [collectionsCount, totalWeightResult, activeClients, activeUnits] = await Promise.all([
       Collection.count({ where: whereConditions }),
-      this.getTotalWeight(whereConditions),
-      Client.count({ where: { active: true } }),
-      Unit.count({ where: { active: true } }),
+      this.getTotalWeightOptimized(whereConditions),
+      Client.count({ where: clientFilter }),
+      Unit.count({ where: unitFilter }),
     ]);
 
     return {
-      totalCollections: collections,
-      totalWeightKg: totalWeight,
+      totalCollections: collectionsCount,
+      totalWeightKg: totalWeightResult,
       activeClients,
       activeUnits,
     };
   }
 
-  private async getTotalWeight(whereConditions: Record<string, unknown>): Promise<number> {
-    const collections = await Collection.findAll({
-      where: whereConditions,
-      attributes: ['id'],
-    });
-
-    const collectionIds = collections.map((c) => c.id);
-
-    if (collectionIds.length === 0) {
-      return 0;
-    }
-
-    const result = (await GravimetricData.findOne({
-      where: { collectionId: { [Op.in]: collectionIds } },
-      attributes: [[fn('SUM', col('weight_kg')), 'total']],
+  private async getTotalWeightOptimized(whereConditions: Record<string, unknown>): Promise<number> {
+    const result = await GravimetricData.findOne({
+      attributes: [
+        [fn('COALESCE', fn('SUM', col('weight_kg')), 0), 'totalWeight']
+      ],
+      include: [
+        {
+          model: Collection,
+          as: 'collection',
+          attributes: [],
+          where: whereConditions,
+          required: true,
+        },
+      ],
       raw: true,
-    })) as unknown as { total: number | null };
+    }) as unknown as { totalWeight: string } | null;
 
-    return result?.total || 0;
+    return result ? parseFloat(result.totalWeight) : 0;
   }
 
   private async getWasteTypeDistribution(
     dateFilter: Record<string, unknown>,
     clientId?: string
   ): Promise<WasteTypeDistribution[]> {
-    const whereConditions = { ...dateFilter };
+    const whereConditions: Record<string, unknown> = {
+      ...dateFilter,
+      approvalStatus: ApprovalStatus.APPROVED,
+    };
     if (clientId) {
       whereConditions.clientId = clientId;
     }
 
-    const collections = await Collection.findAll({
+    const countResults = await Collection.findAll({
       where: whereConditions,
       attributes: [
         'wasteTypeId',
@@ -100,53 +112,51 @@ export class DashboardService {
           model: WasteType,
           as: 'wasteType',
           attributes: ['name', 'category'],
-        },
-        {
-          model: GravimetricData,
-          as: 'gravimetricData',
-          attributes: [],
+          required: true,
         },
       ],
-      group: ['Collection.waste_type_id', 'wasteType.id', 'wasteType.name', 'wasteType.category'],
-      raw: false,
-    });
+      group: [
+        'Collection.waste_type_id',
+        'wasteType.id',
+        'wasteType.name',
+        'wasteType.category',
+      ],
+      raw: true,
+    }) as unknown as Array<{
+      wasteTypeId: string;
+      count: string;
+      'wasteType.name': string;
+      'wasteType.category': string;
+    }>;
 
-    const totalCollections = collections.reduce(
-      (sum, c) => sum + (c.get('count') as number || 0),
-      0
-    );
+    const totalCollections = countResults.reduce((sum, r) => sum + parseInt(r.count), 0);
 
     const distribution: WasteTypeDistribution[] = await Promise.all(
-      collections.map(async (collection) => {
-        const wasteType = collection.wasteType!;
-        const count = collection.get('count') as number;
-
-        const weights = await GravimetricData.findAll({
-          where: {
-            collectionId: {
-              [Op.in]: await Collection.findAll({
-                where: {
-                  ...whereConditions,
-                  wasteTypeId: collection.wasteTypeId,
-                },
-                attributes: ['id'],
-                raw: true,
-              }).then(rows => rows.map(r => r.id as string)),
+      countResults.map(async (result) => {
+        const weightResult = await GravimetricData.findOne({
+          attributes: [[fn('COALESCE', fn('SUM', col('weight_kg')), 0), 'total']],
+          include: [
+            {
+              model: Collection,
+              as: 'collection',
+              attributes: [],
+              where: {
+                ...whereConditions,
+                wasteTypeId: result.wasteTypeId,
+              },
+              required: true,
             },
-          },
-          attributes: [[fn('SUM', col('weight_kg')), 'total']],
+          ],
           raw: true,
-        }) as unknown as { total: number | null }[];
-
-        const totalWeight = weights[0]?.total || 0;
+        }) as unknown as { total: string } | null;
 
         return {
-          wasteTypeId: collection.wasteTypeId,
-          wasteTypeName: wasteType.name,
-          category: wasteType.category,
-          count,
-          totalWeightKg: totalWeight,
-          percentage: totalCollections > 0 ? (count / totalCollections) * 100 : 0,
+          wasteTypeId: result.wasteTypeId,
+          wasteTypeName: result['wasteType.name'],
+          category: result['wasteType.category'],
+          count: parseInt(result.count),
+          totalWeightKg: weightResult ? parseFloat(weightResult.total) : 0,
+          percentage: totalCollections > 0 ? (parseInt(result.count) / totalCollections) * 100 : 0,
         };
       })
     );
@@ -154,16 +164,77 @@ export class DashboardService {
     return distribution.sort((a, b) => b.count - a.count);
   }
 
-  private async getTopUnits(
+  private async getTreatmentTypeDistribution(
     dateFilter: Record<string, unknown>,
     clientId?: string
-  ): Promise<TopUnit[]> {
-    const whereConditions = { ...dateFilter };
+  ): Promise<TreatmentTypeDistribution[]> {
+    const whereConditions: Record<string, unknown> = {
+      ...dateFilter,
+      approvalStatus: ApprovalStatus.APPROVED,
+    };
     if (clientId) {
       whereConditions.clientId = clientId;
     }
 
-    const collections = await Collection.findAll({
+    const countResults = await Collection.findAll({
+      where: whereConditions,
+      attributes: [
+        'treatmentType',
+        [fn('COUNT', col('Collection.id')), 'count'],
+      ],
+      group: ['Collection.treatment_type'],
+      raw: true,
+    }) as unknown as Array<{
+      treatmentType: string;
+      count: string;
+    }>;
+
+    const totalCollections = countResults.reduce((sum, r) => sum + parseInt(r.count), 0);
+
+    const distribution: TreatmentTypeDistribution[] = await Promise.all(
+      countResults.map(async (result) => {
+        const weightResult = await GravimetricData.findOne({
+          attributes: [[fn('COALESCE', fn('SUM', col('weight_kg')), 0), 'total']],
+          include: [
+            {
+              model: Collection,
+              as: 'collection',
+              attributes: [],
+              where: {
+                ...whereConditions,
+                treatmentType: result.treatmentType,
+              },
+              required: true,
+            },
+          ],
+          raw: true,
+        }) as unknown as { total: string } | null;
+
+        return {
+          treatmentType: result.treatmentType,
+          count: parseInt(result.count),
+          totalWeightKg: weightResult ? parseFloat(weightResult.total) : 0,
+          percentage: totalCollections > 0 ? (parseInt(result.count) / totalCollections) * 100 : 0,
+        };
+      })
+    );
+
+    return distribution.sort((a, b) => b.totalWeightKg - a.totalWeightKg);
+  }
+
+  private async getTopUnits(
+    dateFilter: Record<string, unknown>,
+    clientId?: string
+  ): Promise<TopUnit[]> {
+    const whereConditions: Record<string, unknown> = {
+      ...dateFilter,
+      approvalStatus: ApprovalStatus.APPROVED,
+    };
+    if (clientId) {
+      whereConditions.clientId = clientId;
+    }
+
+    const countResults = await Collection.findAll({
       where: whereConditions,
       attributes: [
         'unitId',
@@ -174,51 +245,59 @@ export class DashboardService {
           model: Unit,
           as: 'unit',
           attributes: ['name'],
+          required: true,
           include: [
             {
               model: Client,
               as: 'client',
               attributes: ['name'],
+              required: true,
             },
           ],
         },
       ],
-      group: ['Collection.unit_id', 'unit.id', 'unit.name', 'unit->client.id', 'unit->client.name'],
-      order: [[literal('COUNT(*)'), 'DESC']],
+      group: [
+        'Collection.unit_id',
+        'unit.id',
+        'unit.name',
+        'unit->client.id',
+        'unit->client.name',
+      ],
+      order: [[literal('COUNT("Collection"."id")'), 'DESC']],
       limit: TOP_UNITS_LIMIT,
-      raw: false,
-    });
+      raw: true,
+    }) as unknown as Array<{
+      unitId: string;
+      totalCollections: string;
+      'unit.name': string;
+      'unit.client.name': string;
+    }>;
 
     const topUnits: TopUnit[] = await Promise.all(
-      collections.map(async (collection) => {
-        const unit = collection.unit!;
-        const totalCollections = collection.get('totalCollections') as number;
-
-        const weights = await GravimetricData.findAll({
-          where: {
-            collectionId: {
-              [Op.in]: await Collection.findAll({
-                where: {
-                  ...whereConditions,
-                  unitId: collection.unitId,
-                },
-                attributes: ['id'],
-                raw: true,
-              }).then(rows => rows.map(r => r.id as string)),
+      countResults.map(async (result) => {
+        const weightResult = await GravimetricData.findOne({
+          attributes: [[fn('COALESCE', fn('SUM', col('weight_kg')), 0), 'total']],
+          include: [
+            {
+              model: Collection,
+              as: 'collection',
+              attributes: [],
+              where: {
+                ...whereConditions,
+                unitId: result.unitId,
+              },
+              required: true,
             },
-          },
-          attributes: [[fn('SUM', col('weight_kg')), 'total']],
+          ],
           raw: true,
-        }) as unknown as { total: number | null }[];
-
-        const totalWeight = weights[0]?.total || 0;
+        }) as unknown as { total: string } | null;
 
         return {
-          unitId: collection.unitId,
-          unitName: unit.name,
-          clientName: unit.client?.name || '',
-          totalCollections,
-          totalWeightKg: totalWeight,
+          unitId: result.unitId,
+          unitName: result['unit.name'],
+          clientName: result['unit.client.name'],
+          totalCollections: parseInt(result.totalCollections),
+          totalWeightKg: weightResult ? parseFloat(weightResult.total) : 0,
         };
       })
     );

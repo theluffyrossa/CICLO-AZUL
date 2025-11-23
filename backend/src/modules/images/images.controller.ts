@@ -14,10 +14,49 @@ export class ImagesController {
 
   upload = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
     try {
+      const files = req.files as Express.Multer.File[];
+
+      if (!files || files.length === 0) {
+        sendBadRequest(res, 'No files uploaded');
+        return;
+      }
+
+      if (files.length > 6) {
+        sendBadRequest(res, 'Maximum 6 images allowed');
+        return;
+      }
+
+      const data = {
+        collectionId: req.body.collectionId,
+        latitude: req.body.latitude ? parseFloat(req.body.latitude) : undefined,
+        longitude: req.body.longitude ? parseFloat(req.body.longitude) : undefined,
+        capturedAt: req.body.capturedAt ? new Date(req.body.capturedAt) : undefined,
+        deviceInfo: req.body.deviceInfo,
+        consentGiven: req.body.consentGiven === 'true' || req.body.consentGiven === true,
+        description: req.body.description,
+      };
+
+      const images = await this.imagesService.createMultiple(files, data);
+
+      sendCreated(res, images, `${images.length} image(s) uploaded successfully`);
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  uploadSingle = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
+    try {
       if (!req.file) {
         sendBadRequest(res, 'No file uploaded');
         return;
       }
+
+      console.log('[Upload Single] Body received:', {
+        collectionId: req.body.collectionId,
+        consentGiven: req.body.consentGiven,
+        latitude: req.body.latitude,
+        longitude: req.body.longitude,
+      });
 
       const data = {
         collectionId: req.body.collectionId,

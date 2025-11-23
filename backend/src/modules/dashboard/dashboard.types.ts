@@ -34,9 +34,17 @@ export interface TopUnit {
   totalWeightKg: number;
 }
 
+export interface TreatmentTypeDistribution {
+  treatmentType: string;
+  count: number;
+  totalWeightKg: number;
+  percentage: number;
+}
+
 export interface DashboardData {
   summary: DashboardSummary;
   wasteTypeDistribution: WasteTypeDistribution[];
+  treatmentTypeDistribution: TreatmentTypeDistribution[];
   collectionsByPeriod: CollectionByPeriod[];
   weightEvolution: WeightEvolution[];
   topUnits: TopUnit[];

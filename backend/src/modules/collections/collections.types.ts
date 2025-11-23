@@ -1,4 +1,4 @@
-import { CollectionStatus } from '@shared/types';
+import { CollectionStatus, TreatmentType, ApprovalStatus } from '@shared/types';
 
 export interface CreateCollectionDto {
   clientId: string;
@@ -7,16 +7,19 @@ export interface CreateCollectionDto {
   userId: string;
   recipientId: string;
   collectionDate: Date;
+  treatmentType: TreatmentType;
   status?: CollectionStatus;
   notes?: string;
   latitude?: number;
   longitude?: number;
+  metadata?: Record<string, unknown>;
 }
 
 export interface UpdateCollectionDto {
   wasteTypeId?: string;
   recipientId?: string;
   collectionDate?: Date;
+  treatmentType?: TreatmentType;
   status?: CollectionStatus;
   notes?: string;
   latitude?: number;
@@ -30,6 +33,7 @@ export interface CollectionFilters {
   userId?: string;
   recipientId?: string;
   status?: CollectionStatus;
+  approvalStatus?: ApprovalStatus;
   startDate?: string;
   endDate?: string;
 }

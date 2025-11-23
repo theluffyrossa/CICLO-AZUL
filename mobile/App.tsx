@@ -16,7 +16,7 @@ const queryClient = new QueryClient({
   },
 });
 
-export default function App(): JSX.Element {
+export default function App(): React.JSX.Element {
   const checkAuth = useAuthStore((state) => state.checkAuth);
   const loadSettings = useSettingsStore((state) => state.loadFromStorage);
 

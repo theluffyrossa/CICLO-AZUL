@@ -8,3 +8,4 @@ export { Image } from './Image.model';
 export { AuditLog } from './AuditLog.model';
 export { LgpdConsent } from './LgpdConsent.model';
 export { Recipient, RecipientType } from './Recipient.model';
+export { ClientWasteType } from './ClientWasteType.model';

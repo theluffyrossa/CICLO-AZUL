@@ -46,5 +46,5 @@ export const clientFiltersSchema = Joi.object({
   city: Joi.string().optional().allow(''),
   state: Joi.string().valid(...BRAZILIAN_STATES).optional().allow(''),
   page: Joi.number().integer().min(1).optional(),
-  limit: Joi.number().integer().min(1).max(100).optional(),
+  limit: Joi.number().integer().min(1).max(10000).optional(),
 });

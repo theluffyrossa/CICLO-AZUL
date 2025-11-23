@@ -16,16 +16,6 @@ export const usersService = {
     return response.data.data!;
   },
 
-  async getOperators(): Promise<User[]> {
-    const response = await api.get<ApiResponse<PaginatedResponse<User>>>('/users', {
-      params: {
-        role: 'OPERATOR',
-        limit: 100,
-      },
-    });
-    return response.data.data?.items || [];
-  },
-
   async getUserById(id: string): Promise<User> {
     const response = await api.get<ApiResponse<User>>(`/users/${id}`);
     return response.data.data!;

@@ -2,12 +2,16 @@ import Joi from 'joi';
 import { PASSWORD_RULES } from '@shared/constants';
 
 export const loginSchema = Joi.object({
-  email: Joi.string()
-    .email()
+  username: Joi.string()
+    .alphanum()
+    .min(3)
+    .max(50)
     .required()
     .messages({
-      'string.email': 'Email must be a valid email address',
-      'any.required': 'Email is required',
+      'string.alphanum': 'Username must contain only alphanumeric characters',
+      'string.min': 'Username must be at least 3 characters',
+      'string.max': 'Username must not exceed 50 characters',
+      'any.required': 'Username is required',
     }),
   password: Joi.string()
     .min(PASSWORD_RULES.MIN_LENGTH)

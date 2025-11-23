@@ -9,9 +9,10 @@ import { HTTP_STATUS } from '../constants';
 
 interface JwtPayload {
   id: string;
-  email: string;
+  username: string;
   role: UserRole;
   name: string;
+  clientId?: string;
 }
 
 const extractTokenFromHeader = (authorization?: string): string | null => {
@@ -37,9 +38,10 @@ export const authenticate = (
 
     const user: AuthUser = {
       id: decoded.id,
-      email: decoded.email,
+      username: decoded.username,
       role: decoded.role,
       name: decoded.name,
+      clientId: decoded.clientId,
     };
 
     req.user = user;
@@ -73,4 +75,54 @@ export const authorize = (...allowedRoles: UserRole[]) => {
 };
 
 export const isAdmin = authorize(UserRole.ADMIN);
-export const isOperatorOrAdmin = authorize(UserRole.OPERATOR, UserRole.ADMIN);
+export const isClient = authorize(UserRole.CLIENT);
+export const isClientOrAdmin = authorize(UserRole.CLIENT, UserRole.ADMIN);
+
+export const ensureOwnClientData = (
+  req: AuthRequest,
+  _res: Response,
+  next: NextFunction
+): void => {
+  if (!req.user) {
+    throw new AppError(HTTP_STATUS.UNAUTHORIZED, ERROR_MESSAGES.UNAUTHORIZED);
+  }
+
+  if (req.user.role === UserRole.ADMIN) {
+    next();
+    return;
+  }
+
+  if (req.user.role === UserRole.CLIENT) {
+    const queryClientId = req.query.clientId as string | undefined;
+    const bodyClientId = req.body?.clientId as string | undefined;
+    const paramsClientId = req.params?.clientId as string | undefined;
+    const userClientId = req.user.clientId;
+
+    if (!userClientId) {
+      throw new AppError(HTTP_STATUS.FORBIDDEN, 'Client ID not found in user data');
+    }
+
+    if (queryClientId && queryClientId !== userClientId) {
+      throw new AppError(
+        HTTP_STATUS.FORBIDDEN,
+        'You can only access data from your own client'
+      );
+    }
+
+    if (bodyClientId && bodyClientId !== userClientId) {
+      throw new AppError(
+        HTTP_STATUS.FORBIDDEN,
+        'You can only create/update data for your own client'
+      );
+    }
+
+    if (paramsClientId && paramsClientId !== userClientId) {
+      throw new AppError(
+        HTTP_STATUS.FORBIDDEN,
+        'You can only access data from your own client'
+      );
+    }
+  }
+
+  next();
+};

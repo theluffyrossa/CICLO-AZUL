@@ -7,7 +7,7 @@ import {
   BelongsTo,
   HasMany,
 } from 'sequelize-typescript';
-import { CollectionStatus } from '@shared/types';
+import { CollectionStatus, TreatmentType, ApprovalStatus } from '@shared/types';
 import { Client } from './Client.model';
 import { Unit } from './Unit.model';
 import { User } from './User.model';
@@ -20,6 +20,7 @@ import { Recipient } from './Recipient.model';
   tableName: 'collections',
   timestamps: true,
   paranoid: true,
+  underscored: true,
 })
 export class Collection extends Model {
   @Column({
@@ -80,6 +81,13 @@ export class Collection extends Model {
   declare status: CollectionStatus;
 
   @Column({
+    type: DataType.ENUM(...Object.values(TreatmentType)),
+    allowNull: false,
+    comment: 'Type of waste treatment applied',
+  })
+  declare treatmentType: TreatmentType;
+
+  @Column({
     type: DataType.TEXT,
     allowNull: true,
   })
@@ -98,6 +106,43 @@ export class Collection extends Model {
     comment: 'GPS longitude at collection time',
   })
   declare longitude: number | null;
+
+  @Column({
+    type: DataType.JSONB,
+    allowNull: true,
+    comment: 'Additional metadata about the collection',
+  })
+  declare metadata: Record<string, unknown> | null;
+
+  @Column({
+    type: DataType.ENUM(...Object.values(ApprovalStatus)),
+    allowNull: false,
+    defaultValue: ApprovalStatus.PENDING_APPROVAL,
+    comment: 'Approval status for collection validation',
+  })
+  declare approvalStatus: ApprovalStatus;
+
+  @ForeignKey(() => User)
+  @Column({
+    type: DataType.UUID,
+    allowNull: true,
+    comment: 'Admin user who approved/rejected the collection',
+  })
+  declare approvedBy: string | null;
+
+  @Column({
+    type: DataType.DATE,
+    allowNull: true,
+    comment: 'Timestamp when collection was approved/rejected',
+  })
+  declare approvedAt: Date | null;
+
+  @Column({
+    type: DataType.TEXT,
+    allowNull: true,
+    comment: 'Reason for rejection if status is REJECTED',
+  })
+  declare rejectionReason: string | null;
 
   @BelongsTo(() => Client, {
     foreignKey: 'clientId',
@@ -128,6 +173,12 @@ export class Collection extends Model {
     as: 'recipient',
   })
   declare recipient?: Recipient;
+
+  @BelongsTo(() => User, {
+    foreignKey: 'approvedBy',
+    as: 'approver',
+  })
+  declare approver?: User;
 
   @HasMany(() => GravimetricData, {
     foreignKey: 'collectionId',

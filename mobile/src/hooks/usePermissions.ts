@@ -19,7 +19,7 @@ export interface Permissions {
 export interface UsePermissionsReturn {
   permissions: Permissions;
   isAdmin: boolean;
-  isOperator: boolean;
+  isClient: boolean;
   hasPermission: (permission: keyof Permissions) => boolean;
   canAccessScreen: (screenName: string) => boolean;
 }
@@ -39,18 +39,18 @@ const ADMIN_PERMISSIONS: Permissions = {
   canManageSettings: true,
 };
 
-const OPERATOR_PERMISSIONS: Permissions = {
+const CLIENT_PERMISSIONS: Permissions = {
   canViewDashboard: true,
   canManageUsers: false,
   canManageClients: false,
   canManageUnits: false,
   canManageWasteTypes: false,
-  canCreateCollection: true,
+  canCreateCollection: false,
   canEditCollection: false,
   canDeleteCollection: false,
-  canViewAllCollections: false,
-  canViewReports: false,
-  canExportData: false,
+  canViewAllCollections: false, // Clients see only their own collections
+  canViewReports: true,
+  canExportData: true,
   canManageSettings: false,
 };
 
@@ -66,28 +66,25 @@ const ADMIN_SCREENS = [
   'Profile',
 ];
 
-const OPERATOR_SCREENS = [
-  'Dashboard',
-  'Collections',
-  'Profile',
-  'NewCollection',
-  'CollectionDetail',
-  'GravimetricData',
-  'Camera',
+const CLIENT_SCREENS = [
+  'ClientDashboard',
+  'ClientCollections',
+  'ClientCollectionDetail',
+  'ClientProfile',
+  'AccessibilitySettings',
 ];
 
 export const usePermissions = (): UsePermissionsReturn => {
   const { user } = useAuthStore();
 
   const isAdmin = user?.role === UserRole.ADMIN;
-  const isOperator = user?.role === UserRole.OPERATOR;
+  const isClient = user?.role === UserRole.CLIENT;
 
   const permissions: Permissions = isAdmin
     ? ADMIN_PERMISSIONS
-    : isOperator
-    ? OPERATOR_PERMISSIONS
+    : isClient
+    ? CLIENT_PERMISSIONS
     : {
-        // Default: no permissions
         canViewDashboard: false,
         canManageUsers: false,
         canManageClients: false,
@@ -110,8 +107,8 @@ export const usePermissions = (): UsePermissionsReturn => {
     if (isAdmin) {
       return ADMIN_SCREENS.includes(screenName);
     }
-    if (isOperator) {
-      return OPERATOR_SCREENS.includes(screenName);
+    if (isClient) {
+      return CLIENT_SCREENS.includes(screenName);
     }
     return false;
   };
@@ -119,7 +116,7 @@ export const usePermissions = (): UsePermissionsReturn => {
   return {
     permissions,
     isAdmin,
-    isOperator,
+    isClient,
     hasPermission,
     canAccessScreen,
   };

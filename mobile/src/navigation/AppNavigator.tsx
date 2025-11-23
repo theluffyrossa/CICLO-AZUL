@@ -8,8 +8,10 @@ import { AccessibilityInfo } from 'react-native';
 import { colors } from '@/theme';
 import { useAuthStore } from '@/store/authStore';
 import { Loading } from '@/components/common/Loading';
+import { UserRole } from '@/types';
 
 import { LoginScreen } from '@/screens/auth/LoginScreen';
+import { ClientNavigator } from './ClientNavigator';
 import { DashboardScreen } from '@/screens/dashboard/DashboardScreen';
 import { CollectionsListScreen } from '@/screens/collections/CollectionsListScreen';
 import { NewCollectionScreen } from '@/screens/collections/NewCollectionScreen';
@@ -20,21 +22,30 @@ import { ProfileScreen } from '@/screens/profile/ProfileScreen';
 import { EditProfileScreen } from '@/screens/profile/EditProfileScreen';
 import { ChangePinScreen } from '@/screens/profile/ChangePinScreen';
 import { AccessibilitySettingsScreen } from '@/screens/profile/AccessibilitySettingsScreen';
+import { PendingCollectionsScreen } from '@/screens/admin/PendingCollectionsScreen';
+import { CollectionApprovalScreen } from '@/screens/admin/CollectionApprovalScreen';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
 
-const MainTabs = (): JSX.Element => {
+const MainTabs = (): React.ReactElement => {
+  const { user } = useAuthStore();
+  const isAdmin = user?.role === UserRole.ADMIN;
+
   return (
     <Tab.Navigator
-      screenOptions={({ route }) => ({
-        tabBarIcon: ({ focused, color, size }) => {
+      screenOptions={({ route }: { route: { name: string } }) => ({
+        tabBarIcon: ({ focused, color, size }: { focused: boolean; color: string; size: number }) => {
           let iconName: keyof typeof Ionicons.glyphMap;
 
           if (route.name === 'Dashboard') {
             iconName = focused ? 'stats-chart' : 'stats-chart-outline';
           } else if (route.name === 'Coletas') {
             iconName = focused ? 'list' : 'list-outline';
+          } else if (route.name === 'Validação') {
+            iconName = focused ? 'checkmark-circle' : 'checkmark-circle-outline';
+          } else if (route.name === 'Perfil') {
+            iconName = focused ? 'person' : 'person-outline';
           } else {
             iconName = 'ellipse';
           }
@@ -50,7 +61,7 @@ const MainTabs = (): JSX.Element => {
           );
         },
         tabBarActiveTintColor: colors.primary[600],
-        tabBarInactiveTintColor: colors.gray[500],
+        tabBarInactiveTintColor: colors.neutral[500],
         tabBarLabelStyle: {
           fontSize: 12,
           fontWeight: '600',
@@ -67,7 +78,7 @@ const MainTabs = (): JSX.Element => {
         tabBarAccessibilityLabel: `Aba ${route.name}`,
       })}
       screenListeners={{
-        tabPress: (e) => {
+        tabPress: (e: { target?: string }) => {
           AccessibilityInfo.announceForAccessibility(`Navegando para ${e.target?.split('-')[0]}`);
         },
       }}
@@ -88,31 +99,37 @@ const MainTabs = (): JSX.Element => {
           tabBarAccessibilityLabel: 'Coletas, lista de todas as coletas registradas',
         }}
       />
+      {isAdmin && (
+        <Tab.Screen
+          name="Validação"
+          component={PendingCollectionsScreen}
+          options={{
+            title: 'Validação',
+            tabBarAccessibilityLabel: 'Validação, coletas pendentes de aprovação',
+          }}
+        />
+      )}
       <Tab.Screen
         name="Perfil"
         component={ProfileScreen}
         options={{
           title: 'Perfil',
           tabBarAccessibilityLabel: 'Perfil, informações e configurações do usuário',
-          tabBarIcon: ({ focused, color, size }) => (
-            <Ionicons
-              name={focused ? 'person' : 'person-outline'}
-              size={size}
-              color={color}
-            />
-          ),
         }}
       />
     </Tab.Navigator>
   );
 };
 
-export const AppNavigator = (): JSX.Element => {
-  const { isAuthenticated, isLoading } = useAuthStore();
+export const AppNavigator = (): React.ReactElement => {
+  const { isAuthenticated, isLoading, user } = useAuthStore();
 
   if (isLoading) {
-    return <Loading message="Verificando autenticação..." />;
+    return <Loading showLogo={true} />;
   }
+
+  // Determine which navigator to show based on user role
+  const isClient = user?.role === UserRole.CLIENT;
 
   return (
     <NavigationContainer>
@@ -132,7 +149,11 @@ export const AppNavigator = (): JSX.Element => {
           />
         ) : (
           <>
-            <Stack.Screen name="Main" component={MainTabs} />
+            {/* Show ClientNavigator for CLIENT users, MainTabs for ADMIN/OPERATOR */}
+            <Stack.Screen
+              name="Main"
+              component={isClient ? ClientNavigator : MainTabs}
+            />
             <Stack.Screen
               name="NewCollection"
               component={NewCollectionScreen}
@@ -199,6 +220,16 @@ export const AppNavigator = (): JSX.Element => {
               options={{
                 headerShown: true,
                 title: 'Acessibilidade',
+                headerStyle: { backgroundColor: colors.primary[600] },
+                headerTintColor: colors.white,
+              }}
+            />
+            <Stack.Screen
+              name="CollectionApproval"
+              component={CollectionApprovalScreen}
+              options={{
+                headerShown: true,
+                title: 'Aprovar Coleta',
                 headerStyle: { backgroundColor: colors.primary[600] },
                 headerTintColor: colors.white,
               }}

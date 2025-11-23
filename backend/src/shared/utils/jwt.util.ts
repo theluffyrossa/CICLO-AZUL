@@ -5,9 +5,10 @@ import { UserRole } from '../types';
 
 interface TokenPayload {
   id: string;
-  email: string;
+  username: string;
   role: UserRole;
   name: string;
+  clientId?: string;
 }
 
 interface TokenPair {

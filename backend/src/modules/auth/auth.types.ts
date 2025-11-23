@@ -1,7 +1,7 @@
 import { UserRole } from '@shared/types';
 
 export interface LoginRequest {
-  email: string;
+  username: string;
   password: string;
 }
 
@@ -9,8 +9,10 @@ export interface LoginResponse {
   user: {
     id: string;
     name: string;
+    username: string;
     email: string;
     role: UserRole;
+    clientId?: string;
   };
   accessToken: string;
   refreshToken: string;

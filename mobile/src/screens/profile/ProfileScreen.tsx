@@ -9,17 +9,19 @@ import {
   AccessibilityInfo,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 
 import { Card } from '@/components/common';
 import { useAuthStore } from '@/store/authStore';
 import { usePendingActions } from '@/store/offlineStore';
-import { colors, spacing, typography, standardStyles } from '@/theme';
+import { colors, spacing, typography, standardStyles, borderRadius, shadows } from '@/theme';
 
 export const ProfileScreen: React.FC = () => {
   const navigation = useNavigation();
   const { user, logout } = useAuthStore();
   const pendingActions = usePendingActions();
+  const insets = useSafeAreaInsets();
 
   const handleLogout = (): void => {
     if (pendingActions.length > 0) {
@@ -70,7 +72,7 @@ export const ProfileScreen: React.FC = () => {
   return (
     <ScrollView
       style={styles.container}
-      contentContainerStyle={styles.content}
+      contentContainerStyle={[styles.content, { paddingTop: insets.top + spacing['6'] }]}
       accessible={true}
       accessibilityLabel="Perfil do usuário"
     >
@@ -182,17 +184,19 @@ const MenuOption: React.FC<MenuOptionProps> = ({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.neutral[100],
+    backgroundColor: colors.background.default,
   },
   content: {
-    padding: spacing.md,
+    padding: spacing['4'],
   },
   userCard: {
     alignItems: 'center',
-    marginBottom: spacing.md,
+    marginBottom: spacing['5'],
+    padding: spacing['6'],
+    paddingTop: spacing['8'],
   },
   avatarContainer: {
-    marginBottom: spacing.md,
+    marginBottom: spacing['4'],
   },
   avatar: {
     width: 100,
@@ -201,37 +205,47 @@ const styles = StyleSheet.create({
     backgroundColor: colors.primary[600],
     alignItems: 'center',
     justifyContent: 'center',
+    ...shadows.md,
   },
   userName: {
-    ...standardStyles.sectionTitle,
-    marginBottom: spacing.xs,
+    fontSize: 22,
+    fontWeight: '700',
+    color: colors.text.primary,
+    marginBottom: spacing['1'],
   },
   userEmail: {
-    ...standardStyles.fieldValue,
-    marginBottom: spacing.md,
+    fontSize: 15,
+    fontWeight: '500',
+    color: colors.text.secondary,
+    marginBottom: spacing['4'],
   },
   roleBadge: {
-    backgroundColor: colors.primary[100],
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.xs,
-    borderRadius: 16,
+    backgroundColor: colors.primary[50],
+    paddingHorizontal: spacing['4'],
+    paddingVertical: spacing['2'],
+    borderRadius: borderRadius.full,
+    borderWidth: 1,
+    borderColor: colors.primary[200],
   },
   roleText: {
-    ...standardStyles.secondaryText,
+    fontSize: 12,
     color: colors.primary[700],
     fontWeight: '600',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
   menuCard: {
-    marginBottom: spacing.md,
+    marginBottom: spacing['5'],
     padding: 0,
+    overflow: 'hidden',
   },
   menuOption: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    padding: spacing.md,
+    padding: spacing['4'],
     borderBottomWidth: 1,
-    borderBottomColor: colors.neutral[200],
+    borderBottomColor: colors.border.light,
   },
   menuOptionLeft: {
     flexDirection: 'row',
@@ -239,50 +253,55 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   menuOptionText: {
-    ...standardStyles.fieldValue,
+    fontSize: 16,
     fontWeight: '500',
-    marginLeft: spacing.md,
+    color: colors.text.primary,
+    marginLeft: spacing['3'],
   },
   syncCard: {
-    marginBottom: spacing.md,
-    backgroundColor: colors.warning[50],
+    marginBottom: spacing['5'],
+    backgroundColor: colors.warning.light + '15',
     borderColor: colors.warning.main,
-    borderWidth: 1,
+    borderWidth: 1.5,
   },
   syncHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: spacing.xs,
+    marginBottom: spacing['2'],
   },
   syncTitle: {
-    ...standardStyles.fieldValue,
+    fontSize: 16,
     fontWeight: '600',
-    marginLeft: spacing.sm,
+    color: colors.text.primary,
+    marginLeft: spacing['2'],
   },
   syncText: {
-    ...standardStyles.secondaryText,
+    fontSize: 14,
+    fontWeight: '500',
+    color: colors.text.secondary,
   },
   logoutButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: colors.neutral[50],
-    padding: spacing.md,
-    borderRadius: 8,
-    borderWidth: 1,
+    backgroundColor: colors.error.light + '15',
+    padding: spacing['4'],
+    borderRadius: borderRadius.md,
+    borderWidth: 1.5,
     borderColor: colors.error.main,
-    marginBottom: spacing.lg,
+    marginBottom: spacing['6'],
   },
   logoutText: {
-    ...standardStyles.fieldValue,
+    fontSize: 16,
     color: colors.error.main,
     fontWeight: '600',
-    marginLeft: spacing.sm,
+    marginLeft: spacing['2'],
   },
   version: {
-    ...standardStyles.secondaryText,
-    color: colors.neutral[500],
+    fontSize: 12,
+    fontWeight: '500',
+    color: colors.text.tertiary,
     textAlign: 'center',
-    marginBottom: spacing.xl,
+    marginBottom: spacing['10'],
   },
 });

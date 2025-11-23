@@ -17,7 +17,7 @@ import { ptBR } from 'date-fns/locale';
 import { Card, FloatingActionButton, EmptyState } from '@/components/common';
 import { Loading } from '@/components/common/Loading';
 import { collectionsService } from '@/services/collections.service';
-import { Collection, CollectionStatus } from '@/types';
+import { Collection, CollectionStatus, ApprovalStatus } from '@/types';
 import { colors, spacing, borderRadius, standardStyles } from '@/theme';
 import { useNavigation } from '@react-navigation/native';
 import { toNumber, formatNumber } from '@/utils/numbers';
@@ -43,7 +43,19 @@ const STATUS_ICONS: Record<CollectionStatus, keyof typeof Ionicons.glyphMap> = {
   [CollectionStatus.CANCELLED]: 'close-circle',
 };
 
-export const CollectionsListScreen = (): JSX.Element => {
+const APPROVAL_LABELS: Record<ApprovalStatus, string> = {
+  [ApprovalStatus.PENDING_APPROVAL]: 'Pendente',
+  [ApprovalStatus.APPROVED]: 'Aprovada',
+  [ApprovalStatus.REJECTED]: 'Rejeitada',
+};
+
+const APPROVAL_COLORS: Record<ApprovalStatus, string> = {
+  [ApprovalStatus.PENDING_APPROVAL]: colors.warning.main,
+  [ApprovalStatus.APPROVED]: colors.success.main,
+  [ApprovalStatus.REJECTED]: colors.error.main,
+};
+
+export const CollectionsListScreen = (): React.JSX.Element => {
   const navigation = useNavigation();
   const [page, setPage] = useState(1);
 
@@ -64,22 +76,22 @@ export const CollectionsListScreen = (): JSX.Element => {
     );
   };
 
-  const renderEmptyList = (): JSX.Element => (
+  const renderEmptyList = (): React.JSX.Element => (
     <View
       style={styles.emptyContainer}
       accessible={true}
       accessibilityRole="text"
-      accessibilityLabel="Nenhuma coleta encontrada"
+      accessibilityLabel="Nenhuma coleta registrada ainda"
     >
-      <Ionicons name="leaf-outline" size={64} color={colors.gray[400]} />
-      <Text style={styles.emptyText}>Nenhuma coleta encontrada</Text>
+      <Ionicons name="leaf-outline" size={64} color={colors.neutral[400]} />
+      <Text style={styles.emptyText}>Nenhuma coleta registrada</Text>
       <Text style={styles.emptySubtext}>
-        As coletas registradas aparecerão aqui
+        Toque no botão + para registrar sua primeira coleta
       </Text>
     </View>
   );
 
-  const renderCollectionItem = ({ item, index }: { item: Collection; index: number }): JSX.Element => {
+  const renderCollectionItem = ({ item, index }: { item: Collection; index: number }): React.JSX.Element => {
     const totalWeight = getTotalWeight(item);
     const statusLabel = STATUS_LABELS[item.status];
     const statusColor = STATUS_COLORS[item.status];
@@ -118,23 +130,23 @@ export const CollectionsListScreen = (): JSX.Element => {
 
           <View style={styles.cardContent}>
             <View style={styles.infoRow}>
-              <Ionicons name="location" size={16} color={colors.gray[600]} />
+              <Ionicons name="location" size={16} color={colors.neutral[600]} />
               <Text style={styles.infoText}>{item.unit?.name}</Text>
             </View>
 
             <View style={styles.infoRow}>
-              <Ionicons name="trash" size={16} color={colors.gray[600]} />
+              <Ionicons name="trash" size={16} color={colors.neutral[600]} />
               <Text style={styles.infoText}>{item.wasteType?.name}</Text>
             </View>
 
             <View style={styles.infoRow}>
-              <Ionicons name="calendar" size={16} color={colors.gray[600]} />
+              <Ionicons name="calendar" size={16} color={colors.neutral[600]} />
               <Text style={styles.infoText}>{formattedDate}</Text>
             </View>
 
             {totalWeight > 0 && (
               <View style={styles.infoRow}>
-                <Ionicons name="scale" size={16} color={colors.gray[600]} />
+                <Ionicons name="scale" size={16} color={colors.neutral[600]} />
                 <Text style={styles.infoTextBold}>
                   {formatNumber(totalWeight, 2)} kg
                 </Text>
@@ -143,12 +155,30 @@ export const CollectionsListScreen = (): JSX.Element => {
 
             {item.images && item.images.length > 0 && (
               <View style={styles.infoRow}>
-                <Ionicons name="camera" size={16} color={colors.gray[600]} />
+                <Ionicons name="camera" size={16} color={colors.neutral[600]} />
                 <Text style={styles.infoText}>
                   {item.images.length} {item.images.length === 1 ? 'foto' : 'fotos'}
                 </Text>
               </View>
             )}
+          </View>
+
+          <View style={styles.approvalBadgeContainer}>
+            <View
+              style={[
+                styles.approvalBadge,
+                { backgroundColor: APPROVAL_COLORS[item.approvalStatus] + '20' },
+              ]}
+            >
+              <Text
+                style={[
+                  styles.approvalText,
+                  { color: APPROVAL_COLORS[item.approvalStatus] },
+                ]}
+              >
+                {APPROVAL_LABELS[item.approvalStatus]}
+              </Text>
+            </View>
           </View>
 
           {item.notes && (
@@ -270,11 +300,28 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: colors.primary[600],
   },
+  approvalBadgeContainer: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    marginTop: spacing.sm,
+    paddingTop: spacing.sm,
+    borderTopWidth: 1,
+    borderTopColor: colors.border.light,
+  },
+  approvalBadge: {
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xs,
+    borderRadius: borderRadius.sm,
+  },
+  approvalText: {
+    fontSize: 12,
+    fontWeight: '600',
+  },
   notesContainer: {
     marginTop: spacing.sm,
     paddingTop: spacing.sm,
     borderTopWidth: 1,
-    borderTopColor: colors.gray[200],
+    borderTopColor: colors.border.light,
   },
   notesText: {
     ...standardStyles.secondaryText,
@@ -304,7 +351,7 @@ const styles = StyleSheet.create({
     padding: spacing.sm,
     backgroundColor: colors.white,
     borderTopWidth: 1,
-    borderTopColor: colors.gray[200],
+    borderTopColor: colors.border.light,
   },
   paginationText: {
     ...standardStyles.secondaryText,

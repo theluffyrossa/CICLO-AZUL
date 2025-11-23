@@ -49,26 +49,33 @@ export const NumericInput: React.FC<NumericInputProps> = ({
       return;
     }
 
-    // Remove caracteres não numéricos, exceto ponto e vírgula
-    let numericText = text.replace(/[^0-9.,]/g, '');
+    // Remove caracteres não numéricos, exceto vírgula
+    let numericText = text.replace(/[^0-9,]/g, '');
 
-    // Substitui vírgula por ponto
-    numericText = numericText.replace(',', '.');
-
-    // Garante apenas um ponto decimal
-    const parts = numericText.split('.');
+    // Garante apenas uma vírgula decimal
+    const parts = numericText.split(',');
     if (parts.length > 2) {
-      numericText = parts[0] + '.' + parts.slice(1).join('');
+      numericText = parts[0] + ',' + parts.slice(1).join('');
+    }
+
+    // Remove zeros à esquerda desnecessários
+    // Mas mantém "0" se for o único caractere ou "0," no início de decimal
+    if (parts[0].length > 1 && parts[0].startsWith('0') && parts[0] !== '0') {
+      parts[0] = parts[0].replace(/^0+/, '');
+      if (parts[0] === '') {
+        parts[0] = '0';
+      }
+      numericText = parts.join(',');
     }
 
     // Limita casas decimais
     if (parts.length === 2 && parts[1].length > decimals) {
-      numericText = parts[0] + '.' + parts[1].substring(0, decimals);
+      numericText = parts[0] + ',' + parts[1].substring(0, decimals);
     }
 
-    // Valida min/max apenas para valores completos
-    const numValue = parseFloat(numericText);
-    if (!isNaN(numValue) && numericText !== '' && !numericText.endsWith('.')) {
+    // Valida min/max apenas para valores completos (converte vírgula para ponto para parseFloat)
+    const numValue = parseFloat(numericText.replace(',', '.'));
+    if (!isNaN(numValue) && numericText !== '' && !numericText.endsWith(',')) {
       if (max !== undefined && numValue > max) {
         return;
       }
@@ -128,13 +135,17 @@ export const NumericInput: React.FC<NumericInputProps> = ({
         </Text>
       )}
 
-      {(min !== undefined || max !== undefined) && !error && (
+      {!error && (
         <Text style={styles.hint}>
-          {min !== undefined && max !== undefined
-            ? `Valor entre ${min} e ${max}${unit ? ` ${unit}` : ''}`
-            : min !== undefined
-            ? `Valor mínimo: ${min}${unit ? ` ${unit}` : ''}`
-            : `Valor máximo: ${max}${unit ? ` ${unit}` : ''}`}
+          {min !== undefined || max !== undefined ? (
+            min !== undefined && max !== undefined
+              ? `Valor entre ${min} e ${max}${unit ? ` ${unit}` : ''}`
+              : min !== undefined
+              ? `Valor mínimo: ${min}${unit ? ` ${unit}` : ''}`
+              : `Valor máximo: ${max}${unit ? ` ${unit}` : ''}`
+          ) : (
+            decimals === 2 ? 'Use vírgula para decimais. Ex: 3,75' : null
+          )}
         </Text>
       )}
     </View>

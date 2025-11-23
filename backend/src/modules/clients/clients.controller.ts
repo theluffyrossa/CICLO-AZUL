@@ -30,8 +30,10 @@ export class ClientsController {
       const page = req.query.page as string | number | undefined;
       const limit = req.query.limit as string | number | undefined;
       const pagination = getPaginationParams(page, limit);
+      const userRole = req.user!.role;
+      const userClientId = req.user!.clientId;
 
-      const result = await this.clientsService.findAll(filters, pagination);
+      const result = await this.clientsService.findAll(filters, pagination, userRole, userClientId);
 
       sendSuccess(res, result);
     } catch (error) {
@@ -43,6 +45,22 @@ export class ClientsController {
     try {
       const { id } = req.params;
       const client = await this.clientsService.findById(id);
+
+      sendSuccess(res, client);
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  getMyProfile = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const userId = req.user?.id;
+
+      if (!userId) {
+        throw new Error('User not authenticated');
+      }
+
+      const client = await this.clientsService.findClientByUserId(userId);
 
       sendSuccess(res, client);
     } catch (error) {
@@ -69,6 +87,17 @@ export class ClientsController {
       await this.clientsService.delete(id);
 
       sendNoContent(res);
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  getClientWasteTypes = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const { id } = req.params;
+      const wasteTypes = await this.clientsService.getClientWasteTypes(id);
+
+      sendSuccess(res, wasteTypes);
     } catch (error) {
       next(error);
     }

@@ -1,5 +1,5 @@
 import { api } from './api.service';
-import { Client, PaginatedResponse, ApiResponse } from '@/types';
+import { Client, PaginatedResponse, ApiResponse, WasteType } from '@/types';
 
 interface ClientFilters {
   search?: string;
@@ -19,6 +19,12 @@ export const clientsService = {
 
   async getClientById(id: string): Promise<Client> {
     const response = await api.get<ApiResponse<Client>>(`/clients/${id}`);
+    if (!response.data.data) throw new Error('Invalid response');
+    return response.data.data;
+  },
+
+  async getClientWasteTypes(clientId: string): Promise<WasteType[]> {
+    const response = await api.get<ApiResponse<WasteType[]>>(`/clients/${clientId}/waste-types`);
     if (!response.data.data) throw new Error('Invalid response');
     return response.data.data;
   },

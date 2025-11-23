@@ -2,7 +2,7 @@ import { Request } from 'express';
 
 export enum UserRole {
   ADMIN = 'ADMIN',
-  OPERATOR = 'OPERATOR',
+  CLIENT = 'CLIENT',
 }
 
 export enum CollectionStatus {
@@ -10,6 +10,12 @@ export enum CollectionStatus {
   IN_PROGRESS = 'IN_PROGRESS',
   COMPLETED = 'COMPLETED',
   CANCELLED = 'CANCELLED',
+}
+
+export enum ApprovalStatus {
+  PENDING_APPROVAL = 'PENDING_APPROVAL',
+  APPROVED = 'APPROVED',
+  REJECTED = 'REJECTED',
 }
 
 export enum WasteCategory {
@@ -53,11 +59,20 @@ export enum RecipientType {
   OTHER = 'OTHER',
 }
 
+export enum TreatmentType {
+  RECYCLING = 'RECYCLING',
+  COMPOSTING = 'COMPOSTING',
+  REUSE = 'REUSE',
+  LANDFILL = 'LANDFILL',
+  ANIMAL_FEEDING = 'ANIMAL_FEEDING',
+}
+
 export interface AuthUser {
   id: string;
-  email: string;
+  username: string;
   role: UserRole;
   name: string;
+  clientId?: string;
 }
 
 export interface AuthRequest extends Request {
@@ -104,6 +119,7 @@ export interface CollectionFilters extends DateRangeFilter {
   userId?: string;
   recipientId?: string;
   status?: CollectionStatus;
+  approvalStatus?: ApprovalStatus;
 }
 
 export interface RecipientData {

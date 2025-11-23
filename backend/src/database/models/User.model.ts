@@ -6,11 +6,14 @@ import {
   BeforeCreate,
   BeforeUpdate,
   HasMany,
+  BelongsTo,
+  ForeignKey,
 } from 'sequelize-typescript';
 import { UserRole } from '@shared/types';
 import { hashPassword } from '@shared/utils/password.util';
 import { Collection } from './Collection.model';
 import { AuditLog } from './AuditLog.model';
+import { Client } from './Client.model';
 
 @Table({
   tableName: 'users',
@@ -32,9 +35,15 @@ export class User extends Model {
   declare name: string;
 
   @Column({
-    type: DataType.STRING(255),
+    type: DataType.STRING(50),
     allowNull: false,
     unique: true,
+  })
+  declare username: string;
+
+  @Column({
+    type: DataType.STRING(255),
+    allowNull: true,
     validate: {
       isEmail: true,
     },
@@ -50,7 +59,7 @@ export class User extends Model {
   @Column({
     type: DataType.ENUM(...Object.values(UserRole)),
     allowNull: false,
-    defaultValue: UserRole.OPERATOR,
+    defaultValue: UserRole.CLIENT,
   })
   declare role: UserRole;
 
@@ -66,6 +75,19 @@ export class User extends Model {
     allowNull: true,
   })
   declare lastLoginAt: Date | null;
+
+  @ForeignKey(() => Client)
+  @Column({
+    type: DataType.UUID,
+    allowNull: true,
+  })
+  declare clientId: string | null;
+
+  @BelongsTo(() => Client, {
+    foreignKey: 'clientId',
+    as: 'client',
+  })
+  client?: Client;
 
   @HasMany(() => Collection, {
     foreignKey: 'userId',

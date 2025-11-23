@@ -1,5 +1,5 @@
 import { Op, WhereOptions } from 'sequelize';
-import { Client, Unit } from '@database/models';
+import { Client, Unit, WasteType, ClientWasteType, User } from '@database/models';
 import { AppError } from '@shared/middleware/error.middleware';
 import { HTTP_STATUS } from '@shared/constants';
 import { PaginationParams, PaginatedResponse } from '@shared/types';
@@ -18,9 +18,11 @@ export class ClientsService {
 
   async findAll(
     filters: ClientFilters,
-    pagination: PaginationParams
+    pagination: PaginationParams,
+    userRole?: string,
+    userClientId?: string
   ): Promise<PaginatedResponse<Client>> {
-    const whereConditions = this.buildWhereConditions(filters);
+    const whereConditions = this.buildWhereConditions(filters, userRole, userClientId);
 
     const { count, rows } = await Client.findAndCountAll({
       where: whereConditions,
@@ -58,6 +60,32 @@ export class ClientsService {
     return client;
   }
 
+  async findClientByUserId(userId: string): Promise<Client> {
+    const client = await Client.findOne({
+      include: [
+        {
+          model: User,
+          as: 'clientUsers',
+          where: { id: userId },
+          attributes: [],
+          required: true,
+        },
+        {
+          model: Unit,
+          as: 'units',
+          where: { active: true },
+          required: false,
+        },
+      ],
+    });
+
+    if (!client) {
+      throw new AppError(HTTP_STATUS.NOT_FOUND, 'Client not found for this user');
+    }
+
+    return client;
+  }
+
   async update(id: string, data: UpdateClientDto): Promise<Client> {
     const client = await this.findById(id);
 
@@ -77,12 +105,45 @@ export class ClientsService {
     await client.destroy();
   }
 
+  async getClientWasteTypes(clientId: string): Promise<WasteType[]> {
+    const client = await Client.findByPk(clientId);
+
+    if (!client) {
+      throw new AppError(HTTP_STATUS.NOT_FOUND, 'Client not found');
+    }
+
+    const clientWasteTypes = await ClientWasteType.findAll({
+      where: {
+        clientId,
+        active: true,
+      },
+      include: [
+        {
+          model: WasteType,
+          as: 'wasteType',
+          where: { active: true },
+          required: true,
+        },
+      ],
+    });
+
+    return clientWasteTypes.map((cwt: ClientWasteType) => cwt.wasteType).filter((wt: WasteType | undefined): wt is WasteType => wt !== undefined);
+  }
+
   private async findByDocument(document: string): Promise<Client | null> {
     return Client.findOne({ where: { document } });
   }
 
-  private buildWhereConditions(filters: ClientFilters): WhereOptions<Client> {
+  private buildWhereConditions(
+    filters: ClientFilters,
+    userRole?: string,
+    userClientId?: string
+  ): WhereOptions<Client> {
     const conditions: Record<string | symbol, unknown> = {};
+
+    if (userRole === 'CLIENT' && userClientId) {
+      conditions.id = userClientId;
+    }
 
     if (filters.search) {
       conditions[Op.or] = [

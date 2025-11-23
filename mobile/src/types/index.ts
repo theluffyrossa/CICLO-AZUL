@@ -1,6 +1,6 @@
 export enum UserRole {
   ADMIN = 'ADMIN',
-  OPERATOR = 'OPERATOR',
+  CLIENT = 'CLIENT',
 }
 
 export enum CollectionStatus {
@@ -8,6 +8,12 @@ export enum CollectionStatus {
   IN_PROGRESS = 'IN_PROGRESS',
   COMPLETED = 'COMPLETED',
   CANCELLED = 'CANCELLED',
+}
+
+export enum ApprovalStatus {
+  PENDING_APPROVAL = 'PENDING_APPROVAL',
+  APPROVED = 'APPROVED',
+  REJECTED = 'REJECTED',
 }
 
 export enum WasteCategory {
@@ -28,11 +34,21 @@ export enum RecipientType {
   OTHER = 'OTHER',
 }
 
+export enum TreatmentType {
+  RECYCLING = 'RECYCLING',
+  COMPOSTING = 'COMPOSTING',
+  REUSE = 'REUSE',
+  LANDFILL = 'LANDFILL',
+  ANIMAL_FEEDING = 'ANIMAL_FEEDING',
+}
+
 export interface User {
   id: string;
   name: string;
+  username: string;
   email: string;
   role: UserRole;
+  clientId?: string;
 }
 
 export interface AuthResponse {
@@ -101,7 +117,12 @@ export interface Collection {
   userId: string;
   recipientId: string;
   collectionDate: string;
+  treatmentType: TreatmentType;
   status: CollectionStatus;
+  approvalStatus: ApprovalStatus;
+  approvedBy?: string;
+  approvedAt?: string;
+  rejectionReason?: string;
   notes?: string;
   latitude?: number;
   longitude?: number;
@@ -110,8 +131,23 @@ export interface Collection {
   wasteType?: WasteType;
   user?: User;
   recipient?: Recipient;
+  approver?: User;
   gravimetricData?: GravimetricData[];
   images?: Image[];
+}
+
+export interface CreateCollectionInput {
+  clientId: string;
+  unitId: string;
+  wasteTypeId: string;
+  userId: string;
+  recipientId: string;
+  collectionDate: string;
+  treatmentType: TreatmentType;
+  status?: CollectionStatus;
+  notes?: string;
+  latitude?: number;
+  longitude?: number;
 }
 
 export enum GravimetricDataSource {
@@ -176,6 +212,12 @@ export interface UploadImageInput {
   description?: string;
 }
 
+export interface DashboardFilters {
+  startDate?: string;
+  endDate?: string;
+  clientId?: string;
+}
+
 export interface DashboardData {
   summary: {
     totalCollections: number;
@@ -187,6 +229,12 @@ export interface DashboardData {
     wasteTypeId: string;
     wasteTypeName: string;
     category: string;
+    count: number;
+    totalWeightKg: number;
+    percentage: number;
+  }[];
+  treatmentTypeDistribution: {
+    treatmentType: string;
     count: number;
     totalWeightKg: number;
     percentage: number;

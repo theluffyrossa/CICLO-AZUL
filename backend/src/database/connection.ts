@@ -12,6 +12,7 @@ import {
   AuditLog,
   LgpdConsent,
   Recipient,
+  ClientWasteType,
 } from './models';
 
 const dbConfig = getCurrentDatabaseConfig();
@@ -26,7 +27,7 @@ export const sequelize = new Sequelize({
   logging: dbConfig.logging,
   pool: dbConfig.pool,
   dialectOptions: dbConfig.dialectOptions,
-  models: [User, Client, Unit, WasteType, Collection, GravimetricData, Image, AuditLog, LgpdConsent, Recipient],
+  models: [User, Client, Unit, WasteType, Collection, GravimetricData, Image, AuditLog, LgpdConsent, Recipient, ClientWasteType],
   define: {
     timestamps: true,
     underscored: true, // Converte camelCase para snake_case no banco

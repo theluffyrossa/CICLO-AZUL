@@ -73,7 +73,7 @@ export const Button: React.FC<ButtonProps> = ({
 
 const styles = StyleSheet.create({
   button: {
-    borderRadius: borderRadius.base,
+    borderRadius: borderRadius.md,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -84,7 +84,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.primary[600],
   },
   secondaryButton: {
-    backgroundColor: colors.secondary[600],
+    backgroundColor: colors.secondary[600], // Azul claro
   },
   outlineButton: {
     backgroundColor: 'transparent',
@@ -98,22 +98,23 @@ const styles = StyleSheet.create({
     opacity: 0.5,
   },
   smButton: {
-    paddingVertical: spacing.sm,
-    paddingHorizontal: spacing.md,
-    minHeight: 36,
+    paddingVertical: spacing['2'],
+    paddingHorizontal: spacing['4'],
+    minHeight: 38,
   },
   mdButton: {
-    paddingVertical: spacing.md,
-    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing['3'],
+    paddingHorizontal: spacing['6'],
     minHeight: 48,
   },
   lgButton: {
-    paddingVertical: spacing.lg,
-    paddingHorizontal: spacing.xl,
+    paddingVertical: spacing['4'],
+    paddingHorizontal: spacing['8'],
     minHeight: 56,
   },
   text: {
     fontWeight: '600',
+    letterSpacing: 0.3,
   },
   primaryText: {
     color: colors.white,
@@ -128,12 +129,12 @@ const styles = StyleSheet.create({
     color: colors.white,
   },
   smText: {
-    fontSize: 14,
+    fontSize: 13,
   },
   mdText: {
-    fontSize: 16,
+    fontSize: 15,
   },
   lgText: {
-    fontSize: 18,
+    fontSize: 17,
   },
 });

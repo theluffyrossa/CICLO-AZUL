@@ -9,7 +9,7 @@ import { LoginRequest, LoginResponse, RefreshTokenResponse } from './auth.types'
 
 export class AuthService {
   async login(loginData: LoginRequest, ipAddress?: string): Promise<LoginResponse> {
-    const user = await this.findUserByEmail(loginData.email);
+    const user = await this.findUserByUsername(loginData.username);
 
     await this.validateUserCredentials(user, loginData.password);
     await this.updateLastLogin(user.id);
@@ -21,8 +21,10 @@ export class AuthService {
       user: {
         id: user.id,
         name: user.name,
+        username: user.username,
         email: user.email,
         role: user.role,
+        clientId: user.clientId || undefined,
       },
       accessToken: tokens.accessToken,
       refreshToken: tokens.refreshToken,
@@ -59,8 +61,8 @@ export class AuthService {
     });
   }
 
-  private async findUserByEmail(email: string): Promise<User> {
-    const user = await User.findOne({ where: { email } });
+  private async findUserByUsername(username: string): Promise<User> {
+    const user = await User.findOne({ where: { username } });
     if (!user) {
       throw new AppError(HTTP_STATUS.UNAUTHORIZED, ERROR_MESSAGES.INVALID_CREDENTIALS);
     }
@@ -98,9 +100,10 @@ export class AuthService {
   private generateUserTokens(user: User): { accessToken: string; refreshToken: string } {
     return generateTokenPair({
       id: user.id,
-      email: user.email,
+      username: user.username,
       role: user.role as UserRole,
       name: user.name,
+      clientId: user.clientId || undefined,
     });
   }
 }

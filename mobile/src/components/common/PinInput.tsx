@@ -140,7 +140,7 @@ const styles = StyleSheet.create({
     width: PIN_BOX_SIZE,
     height: PIN_BOX_SIZE,
     borderWidth: 2,
-    borderColor: colors.gray[300],
+    borderColor: colors.border.main,
     borderRadius: borderRadius.md,
     alignItems: 'center',
     justifyContent: 'center',

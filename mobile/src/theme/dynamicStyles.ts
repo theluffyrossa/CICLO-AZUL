@@ -45,14 +45,14 @@ export function createStandardStyles(scale: FontScale = 'medium') {
   const fieldLabel: TextStyle = {
     fontSize: Math.round(BASE_FONT_SIZES.fieldLabel * multiplier),
     fontWeight: '700',
-    color: colors.black,
+    color: colors.text.primary,
     textAlign: 'left',
   };
 
   const fieldValue: TextStyle = {
     fontSize: Math.round(BASE_FONT_SIZES.fieldValue * multiplier),
     fontWeight: '600',
-    color: '#000000',
+    color: colors.text.primary,
   };
 
   const titleEmoji: TextStyle = {
@@ -67,13 +67,13 @@ export function createStandardStyles(scale: FontScale = 'medium') {
   const sectionTitle: TextStyle = {
     fontSize: Math.round(BASE_FONT_SIZES.sectionTitle * multiplier),
     fontWeight: '700',
-    color: colors.black,
+    color: colors.text.primary,
   };
 
   const secondaryText: TextStyle = {
     fontSize: Math.round(BASE_FONT_SIZES.secondaryText * multiplier),
     fontWeight: '500',
-    color: colors.neutral[700],
+    color: colors.text.secondary,
   };
 
   const highlightText: TextStyle = {
@@ -117,4 +117,12 @@ export const combineStyles = (
   customStyle?: TextStyle
 ): TextStyle => {
   return { ...baseStyle, ...customStyle };
+};
+
+/**
+ * Converte FontScale para o multiplicador numérico correspondente
+ * Útil para cálculos dinâmicos de fontSize
+ */
+export const getFontSizeMultiplier = (scale: FontScale): number => {
+  return SCALE_MULTIPLIERS[scale];
 };

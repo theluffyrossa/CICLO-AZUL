@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { ImagesController } from './images.controller';
-import { authenticate, isOperatorOrAdmin } from '@shared/middleware/auth.middleware';
+import { authenticate, isAdmin } from '@shared/middleware/auth.middleware';
 import { validate } from '@shared/middleware/validation.middleware';
 import { asyncHandler } from '@shared/middleware/error.middleware';
 import { upload } from '@shared/utils/upload.util';
@@ -13,9 +13,14 @@ router.use(authenticate);
 
 router.post(
   '/upload',
-  isOperatorOrAdmin,
-  upload.single('image'),
+  upload.array('images', 6),
   asyncHandler(imagesController.upload)
+);
+
+router.post(
+  '/upload-single',
+  upload.single('image'),
+  asyncHandler(imagesController.uploadSingle)
 );
 
 router.get('/collection/:collectionId', asyncHandler(imagesController.findByCollection));
@@ -24,11 +29,11 @@ router.get('/:id', asyncHandler(imagesController.findById));
 
 router.put(
   '/:id',
-  isOperatorOrAdmin,
+  isAdmin,
   validate(updateImageSchema),
   asyncHandler(imagesController.update)
 );
 
-router.delete('/:id', isOperatorOrAdmin, asyncHandler(imagesController.delete));
+router.delete('/:id', isAdmin, asyncHandler(imagesController.delete));
 
 export { router as imagesRouter };

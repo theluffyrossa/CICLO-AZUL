@@ -4,10 +4,15 @@ import {
   Model,
   DataType,
   HasMany,
+  BelongsToMany,
 } from 'sequelize-typescript';
 import { Unit } from './Unit.model';
 import { Collection } from './Collection.model';
 import { LgpdConsent } from './LgpdConsent.model';
+import { User } from './User.model';
+import { WasteType } from './WasteType.model';
+import { ClientWasteType } from './ClientWasteType.model';
+import { Recipient } from './Recipient.model';
 
 @Table({
   tableName: 'clients',
@@ -105,6 +110,26 @@ export class Client extends Model {
     as: 'consents',
   })
   declare consents?: LgpdConsent[];
+
+  @HasMany(() => User, {
+    foreignKey: 'clientId',
+    as: 'clientUsers',
+  })
+  declare clientUsers?: User[];
+
+  @BelongsToMany(() => WasteType, {
+    through: () => ClientWasteType,
+    foreignKey: 'clientId',
+    otherKey: 'wasteTypeId',
+    as: 'wasteTypes',
+  })
+  declare wasteTypes?: WasteType[];
+
+  @HasMany(() => Recipient, {
+    foreignKey: 'clientId',
+    as: 'recipients',
+  })
+  declare recipients?: Recipient[];
 
   toJSON(): Record<string, unknown> {
     const values = { ...this.get() };
