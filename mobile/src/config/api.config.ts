@@ -1,4 +1,5 @@
 import Constants from 'expo-constants';
+import { logger } from '../utils/logger.util';
 
 interface ApiConfig {
   baseURL: string;
@@ -9,32 +10,33 @@ interface ApiConfig {
 const getApiBaseUrl = (): string => {
   const expoExtra = Constants.expoConfig?.extra;
 
-  // Em produção, usa a URL configurada
+  logger.info('Iniciando configuração de API', {
+    nodeEnv: expoExtra?.nodeEnv,
+    hasApiUrl: !!expoExtra?.apiUrl,
+    hostUri: Constants.expoConfig?.hostUri,
+  });
+
   if (expoExtra?.nodeEnv === 'production' && expoExtra?.apiUrl) {
+    logger.info('Usando URL de produção', { url: expoExtra.apiUrl });
     return expoExtra.apiUrl;
   }
 
-  // Em desenvolvimento, usa detecção automática
-  // Expo fornece o IP do servidor através de debuggerHost
   const debuggerHost = Constants.expoConfig?.hostUri;
 
   if (debuggerHost) {
-    // Remove a porta do debugger e usa porta 3000 do backend
     const host = debuggerHost.split(':')[0];
     const backendUrl = `http://${host}:3000/api`;
-
-    console.log('[API Config] Auto-detected backend URL:', backendUrl);
+    logger.info('URL auto-detectada', { url: backendUrl, debuggerHost });
     return backendUrl;
   }
 
-  // Fallback para configuração manual
   if (expoExtra?.apiUrl) {
+    logger.info('Usando API_URL do .env', { url: expoExtra.apiUrl });
     return expoExtra.apiUrl;
   }
 
-  // Último fallback: localhost (funciona em simulador iOS)
   const fallbackUrl = 'http://localhost:3000/api';
-  console.warn('[API Config] Using fallback URL:', fallbackUrl);
+  logger.warn('Usando URL fallback', { url: fallbackUrl });
   return fallbackUrl;
 };
 
@@ -48,11 +50,8 @@ export const apiConfig: ApiConfig = {
   isProduction: isProductionEnv(),
 };
 
-// Log em desenvolvimento para debugging
-if (__DEV__) {
-  console.log('[API Config] Configuration:', {
-    baseURL: apiConfig.baseURL,
-    isProduction: apiConfig.isProduction,
-    hostUri: Constants.expoConfig?.hostUri,
-  });
-}
+logger.info('API Config inicializada', {
+  baseURL: apiConfig.baseURL,
+  isProduction: apiConfig.isProduction,
+  timeout: apiConfig.timeout,
+});

@@ -1,5 +1,9 @@
-// Carrega variáveis de ambiente do arquivo .env
-require('dotenv').config();
+const path = require('path');
+
+const nodeEnv = process.env.NODE_ENV || 'development';
+const envFile = nodeEnv === 'production' ? '.env.production' : '.env';
+
+require('dotenv').config({ path: path.resolve(__dirname, envFile) });
 
 module.exports = {
   expo: {
@@ -42,7 +46,7 @@ module.exports = {
         projectId: 'dddce50c-f078-4626-b7f4-e354d1521180',
       },
       apiUrl: process.env.API_URL || 'http://localhost:3000/api',
-      nodeEnv: process.env.NODE_ENV || 'development',
+      nodeEnv: nodeEnv,
     },
   },
 };

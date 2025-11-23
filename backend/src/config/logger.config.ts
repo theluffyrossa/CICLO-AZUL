@@ -87,9 +87,29 @@ export const logger = winston.createLogger({
 
 export const loggerMiddleware = (
   req: Request,
-  _res: Response,
+  res: Response,
   next: NextFunction
 ): void => {
-  logger.http(`${req.method} ${req.url}`);
+  const startTime = Date.now();
+
+  logger.info('📱 Incoming Request', {
+    method: req.method,
+    url: req.url,
+    ip: req.ip || req.connection.remoteAddress,
+    userAgent: req.get('user-agent'),
+    origin: req.get('origin'),
+    hasAuth: !!req.get('authorization'),
+  });
+
+  res.on('finish', () => {
+    const duration = Date.now() - startTime;
+    logger.info('✅ Response Sent', {
+      method: req.method,
+      url: req.url,
+      status: res.statusCode,
+      duration: `${duration}ms`,
+    });
+  });
+
   next();
 };

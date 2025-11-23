@@ -6,29 +6,52 @@ import { AppError } from '@shared/middleware/error.middleware';
 import { HTTP_STATUS, ERROR_MESSAGES } from '@shared/constants';
 import { AuditAction, UserRole } from '@shared/types';
 import { LoginRequest, LoginResponse, RefreshTokenResponse } from './auth.types';
+import { logger } from '@config/logger.config';
 
 export class AuthService {
   async login(loginData: LoginRequest, ipAddress?: string): Promise<LoginResponse> {
-    const user = await this.findUserByUsername(loginData.username);
+    logger.info('🔐 Tentativa de login', {
+      username: loginData.username,
+      ip: ipAddress,
+    });
 
-    await this.validateUserCredentials(user, loginData.password);
-    await this.updateLastLogin(user.id);
-    await this.createLoginAuditLog(user.id, ipAddress);
+    try {
+      const user = await this.findUserByUsername(loginData.username);
+      logger.info('✅ Usuário encontrado', { userId: user.id, username: user.username });
 
-    const tokens = this.generateUserTokens(user);
+      await this.validateUserCredentials(user, loginData.password);
+      logger.info('✅ Credenciais validadas', { userId: user.id });
 
-    return {
-      user: {
-        id: user.id,
-        name: user.name,
+      await this.updateLastLogin(user.id);
+      await this.createLoginAuditLog(user.id, ipAddress);
+
+      const tokens = this.generateUserTokens(user);
+      logger.info('✅ Login bem-sucedido', {
+        userId: user.id,
         username: user.username,
-        email: user.email,
         role: user.role,
-        clientId: user.clientId || undefined,
-      },
-      accessToken: tokens.accessToken,
-      refreshToken: tokens.refreshToken,
-    };
+      });
+
+      return {
+        user: {
+          id: user.id,
+          name: user.name,
+          username: user.username,
+          email: user.email,
+          role: user.role,
+          clientId: user.clientId || undefined,
+        },
+        accessToken: tokens.accessToken,
+        refreshToken: tokens.refreshToken,
+      };
+    } catch (error) {
+      logger.error('❌ Erro no login', {
+        username: loginData.username,
+        ip: ipAddress,
+        error: error instanceof Error ? error.message : 'Unknown error',
+      });
+      throw error;
+    }
   }
 
   async refreshToken(token: string): Promise<RefreshTokenResponse> {

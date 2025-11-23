@@ -1,6 +1,7 @@
 import axios, { AxiosInstance, AxiosError } from 'axios';
 import * as SecureStore from 'expo-secure-store';
 import { apiConfig } from '@/config/api.config';
+import { logger } from '@/utils/logger.util';
 
 const TOKEN_KEY = 'accessToken';
 const REFRESH_TOKEN_KEY = 'refreshToken';
@@ -9,6 +10,8 @@ class ApiService {
   private api: AxiosInstance;
 
   constructor() {
+    logger.info('Inicializando ApiService', { baseURL: apiConfig.baseURL });
+
     this.api = axios.create({
       baseURL: apiConfig.baseURL,
       timeout: apiConfig.timeout,
@@ -27,21 +30,47 @@ class ApiService {
         if (token) {
           config.headers.Authorization = `Bearer ${token}`;
         }
+
+        logger.debug('Request', {
+          method: config.method?.toUpperCase(),
+          url: config.url,
+          baseURL: config.baseURL,
+          hasToken: !!token,
+        });
+
         return config;
       },
-      (error) => Promise.reject(error)
+      (error) => {
+        logger.error('Request Error', {
+          message: error.message,
+          code: error.code,
+        });
+        return Promise.reject(error);
+      }
     );
 
     this.api.interceptors.response.use(
       (response) => {
-        // Don't unwrap - let services handle the ApiResponse structure
+        logger.debug('Response Success', {
+          status: response.status,
+          url: response.config.url,
+        });
         return response;
       },
       async (error: AxiosError) => {
         const originalRequest = error.config as any;
 
+        logger.error('Response Error', {
+          status: error.response?.status,
+          message: error.message,
+          code: error.code,
+          url: error.config?.url,
+          baseURL: error.config?.baseURL,
+        });
+
         if (error.response?.status === 401 && !originalRequest._retry) {
           originalRequest._retry = true;
+          logger.info('Tentando refresh token');
 
           try {
             const refreshToken = await SecureStore.getItemAsync(REFRESH_TOKEN_KEY);
@@ -55,10 +84,13 @@ class ApiService {
               await SecureStore.setItemAsync(TOKEN_KEY, accessToken);
               await SecureStore.setItemAsync(REFRESH_TOKEN_KEY, newRefreshToken);
 
+              logger.info('Token refreshed com sucesso');
+
               originalRequest.headers.Authorization = `Bearer ${accessToken}`;
               return this.api(originalRequest);
             }
           } catch (refreshError) {
+            logger.error('Erro ao fazer refresh do token', refreshError);
             await this.clearTokens();
             return Promise.reject(refreshError);
           }
