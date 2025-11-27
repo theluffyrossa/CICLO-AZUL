@@ -5,10 +5,12 @@ import {
   ScrollView,
   StyleSheet,
   ActivityIndicator,
-  Image,
+  TouchableOpacity,
+  Alert,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRoute, useNavigation, RouteProp } from '@react-navigation/native';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Ionicons } from '@expo/vector-icons';
 
 import { collectionsService } from '@/services/collections.service';
@@ -23,7 +25,10 @@ import {
   translateGravimetricDataSource,
   translateCollectionStatus,
   cleanWasteTypeName,
+  translateTreatmentType,
 } from '@/utils/translations.util';
+import { ImageCard } from '@/components/collections/ImageCard';
+import { usePermissions } from '@/hooks/usePermissions';
 
 type RouteParams = {
   CollectionDetail: {
@@ -37,6 +42,8 @@ export const CollectionDetailScreen: React.FC = () => {
   const { collectionId } = route.params;
   const { fontSize } = useSettingsStore();
   const fontMultiplier = getFontSizeMultiplier(fontSize);
+  const { isAdmin } = usePermissions();
+  const queryClient = useQueryClient();
 
   const { data: collection, isLoading } = useQuery({
     queryKey: ['collection', collectionId],
@@ -55,32 +62,75 @@ export const CollectionDetailScreen: React.FC = () => {
     enabled: !!collection,
   });
 
+  const canEditOrDelete = isAdmin && collection?.approvalStatus !== ApprovalStatus.APPROVED;
+
+  const handleEdit = (): void => {
+    if (!collection) return;
+    navigation.navigate('EditCollection' as never, { collectionId: collection.id } as never);
+  };
+
+  const handleDelete = (): void => {
+    if (!collection) return;
+
+    Alert.alert(
+      'Confirmar Exclusão',
+      'Tem certeza que deseja excluir esta coleta? Esta ação não pode ser desfeita.',
+      [
+        {
+          text: 'Cancelar',
+          style: 'cancel',
+        },
+        {
+          text: 'Excluir',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await collectionsService.deleteCollection(collection.id);
+              queryClient.invalidateQueries({ queryKey: ['collections'] });
+              Alert.alert('Sucesso', 'Coleta excluída com sucesso!', [
+                {
+                  text: 'OK',
+                  onPress: () => navigation.goBack(),
+                },
+              ]);
+            } catch (error) {
+              console.error('Error deleting collection:', error);
+              const errorMessage = (error as { message?: string })?.message || 'Erro ao excluir coleta';
+              Alert.alert('Erro', errorMessage);
+            }
+          },
+        },
+      ]
+    );
+  };
+
   if (isLoading) {
     return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#4CAF50" />
+      <SafeAreaView style={styles.loadingContainer} edges={['bottom']}>
+        <ActivityIndicator size="large" color="#2B87F5" />
         <Text style={[styles.loadingText, { fontSize: 16 * fontMultiplier }]}>
           Carregando detalhes...
         </Text>
-      </View>
+      </SafeAreaView>
     );
   }
 
   if (!collection) {
     return (
-      <View style={styles.errorContainer}>
+      <SafeAreaView style={styles.errorContainer} edges={['bottom']}>
         <Ionicons name="alert-circle-outline" size={64} color="#f44336" />
         <Text style={[styles.errorText, { fontSize: 16 * fontMultiplier }]}>
           Erro ao carregar detalhes da coleta
         </Text>
-      </View>
+      </SafeAreaView>
     );
   }
 
   const totalWeight = gravimetricData?.reduce((sum, data) => sum + Number(data.weightKg), 0) || 0;
 
   return (
-    <ScrollView style={styles.container} accessible={true} accessibilityLabel="Detalhes da coleta">
+    <SafeAreaView style={styles.container} edges={['bottom']}>
+      <ScrollView accessible={true} accessibilityLabel="Detalhes da coleta">
       <View style={styles.headerCard}>
         <Text style={[styles.wasteTypeName, { fontSize: 16 * fontMultiplier * 1.3 }]}>
           {cleanWasteTypeName(collection.wasteType?.name)}
@@ -98,7 +148,7 @@ export const CollectionDetailScreen: React.FC = () => {
         </Text>
 
         <View style={styles.infoRow}>
-          <Ionicons name="calendar-outline" size={20} color="#4CAF50" />
+          <Ionicons name="calendar-outline" size={20} color="#2B87F5" />
           <View style={styles.infoContent}>
             <Text style={[styles.infoLabel, { fontSize: 16 * fontMultiplier * 0.9 }]}>
               Data da Coleta
@@ -110,7 +160,7 @@ export const CollectionDetailScreen: React.FC = () => {
         </View>
 
         <View style={styles.infoRow}>
-          <Ionicons name="business-outline" size={20} color="#4CAF50" />
+          <Ionicons name="business-outline" size={20} color="#2B87F5" />
           <View style={styles.infoContent}>
             <Text style={[styles.infoLabel, { fontSize: 16 * fontMultiplier * 0.9 }]}>
               Cliente
@@ -122,7 +172,7 @@ export const CollectionDetailScreen: React.FC = () => {
         </View>
 
         <View style={styles.infoRow}>
-          <Ionicons name="location-outline" size={20} color="#4CAF50" />
+          <Ionicons name="location-outline" size={20} color="#2B87F5" />
           <View style={styles.infoContent}>
             <Text style={[styles.infoLabel, { fontSize: 16 * fontMultiplier * 0.9 }]}>
               Local de Coleta
@@ -139,7 +189,7 @@ export const CollectionDetailScreen: React.FC = () => {
         </View>
 
         <View style={styles.infoRow}>
-          <Ionicons name="person-outline" size={20} color="#4CAF50" />
+          <Ionicons name="person-outline" size={20} color="#2B87F5" />
           <View style={styles.infoContent}>
             <Text style={[styles.infoLabel, { fontSize: 16 * fontMultiplier * 0.9 }]}>
               Operador Responsável
@@ -152,7 +202,7 @@ export const CollectionDetailScreen: React.FC = () => {
 
         {collection.recipient && (
           <View style={styles.infoRow}>
-            <Ionicons name="business-outline" size={20} color="#4CAF50" />
+            <Ionicons name="business-outline" size={20} color="#2B87F5" />
             <View style={styles.infoContent}>
               <Text style={[styles.infoLabel, { fontSize: 16 * fontMultiplier * 0.9 }]}>
                 Destinatário
@@ -168,6 +218,18 @@ export const CollectionDetailScreen: React.FC = () => {
             </View>
           </View>
         )}
+
+        <View style={styles.infoRow}>
+          <Ionicons name="sync-outline" size={20} color="#2B87F5" />
+          <View style={styles.infoContent}>
+            <Text style={[styles.infoLabel, { fontSize: 16 * fontMultiplier * 0.9 }]}>
+              Tipo de Tratamento
+            </Text>
+            <Text style={[styles.infoValue, { fontSize: 16 * fontMultiplier }]}>
+              {translateTreatmentType(collection.treatmentType)}
+            </Text>
+          </View>
+        </View>
       </View>
 
       {collection.approvalStatus && collection.approvalStatus !== ApprovalStatus.PENDING_APPROVAL && (
@@ -180,7 +242,7 @@ export const CollectionDetailScreen: React.FC = () => {
             <Ionicons
               name={collection.approvalStatus === ApprovalStatus.APPROVED ? 'checkmark-circle' : 'close-circle'}
               size={20}
-              color={collection.approvalStatus === ApprovalStatus.APPROVED ? '#4CAF50' : '#f44336'}
+              color={collection.approvalStatus === ApprovalStatus.APPROVED ? '#2B87F5' : '#f44336'}
             />
             <View style={styles.infoContent}>
               <Text style={[styles.infoLabel, { fontSize: 16 * fontMultiplier * 0.9 }]}>
@@ -247,7 +309,7 @@ export const CollectionDetailScreen: React.FC = () => {
           </Text>
 
           <View style={styles.weightCard}>
-            <Ionicons name="scale-outline" size={32} color="#4CAF50" />
+            <Ionicons name="scale-outline" size={32} color="#2B87F5" />
             <Text style={[styles.weightValue, { fontSize: 16 * fontMultiplier * 2 }]}>
               {totalWeight.toFixed(1)}
             </Text>
@@ -282,20 +344,12 @@ export const CollectionDetailScreen: React.FC = () => {
 
           <View style={styles.imagesGrid}>
             {images.map((img) => (
-              <View key={img.id} style={styles.imageContainer}>
-                <Image
-                  source={{ uri: getImageUrl(img.url) }}
-                  style={styles.image}
-                  resizeMode="cover"
-                  accessible={true}
-                  accessibilityLabel={`Foto da coleta, ${img.description || 'sem descrição'}`}
-                />
-                {img.consentGiven && (
-                  <View style={styles.consentBadge}>
-                    <Ionicons name="shield-checkmark" size={16} color="#4CAF50" />
-                  </View>
-                )}
-              </View>
+              <ImageCard
+                key={img.id}
+                imageUrl={getImageUrl(img.url)}
+                consentGiven={img.consentGiven}
+                accessibilityLabel={`Foto da coleta, ${img.description || 'sem descrição'}`}
+              />
             ))}
           </View>
         </View>
@@ -311,7 +365,36 @@ export const CollectionDetailScreen: React.FC = () => {
           </Text>
         </View>
       )}
-    </ScrollView>
+
+      {canEditOrDelete && (
+        <View style={styles.actionButtonsContainer}>
+          <TouchableOpacity
+            style={styles.editButton}
+            onPress={handleEdit}
+            accessibilityRole="button"
+            accessibilityLabel="Editar coleta"
+          >
+            <Ionicons name="create-outline" size={20} color="#fff" />
+            <Text style={[styles.editButtonText, { fontSize: 16 * fontMultiplier }]}>
+              Editar Coleta
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.deleteButton}
+            onPress={handleDelete}
+            accessibilityRole="button"
+            accessibilityLabel="Excluir coleta"
+          >
+            <Ionicons name="trash-outline" size={20} color="#fff" />
+            <Text style={[styles.deleteButtonText, { fontSize: 16 * fontMultiplier }]}>
+              Excluir Coleta
+            </Text>
+          </TouchableOpacity>
+        </View>
+      )}
+      </ScrollView>
+    </SafeAreaView>
   );
 };
 
@@ -330,7 +413,7 @@ const getStatusStyle = (status: CollectionStatus) => {
   const statusStyles: Record<CollectionStatus, object> = {
     SCHEDULED: { backgroundColor: '#FFF3E0' },
     IN_PROGRESS: { backgroundColor: '#E3F2FD' },
-    COMPLETED: { backgroundColor: '#E8F5E9' },
+    COMPLETED: { backgroundColor: '#E0F2FE' },
     CANCELLED: { backgroundColor: '#FFEBEE' },
   };
   return statusStyles[status] || { backgroundColor: '#f5f5f5' };
@@ -364,7 +447,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   headerCard: {
-    backgroundColor: '#4CAF50',
+    backgroundColor: '#2B87F5',
     padding: 20,
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -429,7 +512,7 @@ const styles = StyleSheet.create({
   },
   weightValue: {
     fontWeight: 'bold',
-    color: '#4CAF50',
+    color: '#2B87F5',
     marginTop: 8,
   },
   weightLabel: {
@@ -452,7 +535,7 @@ const styles = StyleSheet.create({
   },
   gravimetricWeight: {
     fontWeight: '600',
-    color: '#4CAF50',
+    color: '#2B87F5',
   },
   gravimetricSource: {
     color: '#999',
@@ -487,7 +570,7 @@ const styles = StyleSheet.create({
     lineHeight: 24,
   },
   approvedText: {
-    color: '#4CAF50',
+    color: '#2B87F5',
   },
   rejectedText: {
     color: '#f44336',
@@ -514,5 +597,36 @@ const styles = StyleSheet.create({
     color: '#333',
     lineHeight: 22,
     marginLeft: 28,
+  },
+  actionButtonsContainer: {
+    margin: 16,
+    marginTop: 0,
+    gap: 12,
+  },
+  editButton: {
+    backgroundColor: '#2B87F5',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 16,
+    borderRadius: 8,
+    gap: 8,
+  },
+  editButtonText: {
+    color: '#fff',
+    fontWeight: '600',
+  },
+  deleteButton: {
+    backgroundColor: '#f44336',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 16,
+    borderRadius: 8,
+    gap: 8,
+  },
+  deleteButtonText: {
+    color: '#fff',
+    fontWeight: '600',
   },
 });

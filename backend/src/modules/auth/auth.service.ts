@@ -86,20 +86,42 @@ export class AuthService {
 
   private async findUserByUsername(username: string): Promise<User> {
     const user = await User.findOne({ where: { username } });
+
     if (!user) {
-      throw new AppError(HTTP_STATUS.UNAUTHORIZED, ERROR_MESSAGES.INVALID_CREDENTIALS);
+      const userCaseInsensitive = await this.findUserCaseInsensitive(username);
+
+      if (userCaseInsensitive) {
+        throw new AppError(
+          HTTP_STATUS.UNAUTHORIZED,
+          `${ERROR_MESSAGES.USERNAME_CASE_MISMATCH}"${userCaseInsensitive.username}"`
+        );
+      }
+
+      throw new AppError(HTTP_STATUS.UNAUTHORIZED, ERROR_MESSAGES.USER_NOT_FOUND);
     }
+
     return user;
+  }
+
+  private async findUserCaseInsensitive(username: string): Promise<User | null> {
+    const { Op } = await import('sequelize');
+    return await User.findOne({
+      where: {
+        username: {
+          [Op.iLike]: username
+        }
+      }
+    });
   }
 
   private async validateUserCredentials(user: User, password: string): Promise<void> {
     if (!user.active) {
-      throw new AppError(HTTP_STATUS.UNAUTHORIZED, 'User account is inactive');
+      throw new AppError(HTTP_STATUS.UNAUTHORIZED, ERROR_MESSAGES.USER_INACTIVE);
     }
 
     const isPasswordValid = await comparePassword(password, user.password);
     if (!isPasswordValid) {
-      throw new AppError(HTTP_STATUS.UNAUTHORIZED, ERROR_MESSAGES.INVALID_CREDENTIALS);
+      throw new AppError(HTTP_STATUS.UNAUTHORIZED, ERROR_MESSAGES.INCORRECT_PASSWORD);
     }
   }
 

@@ -22,6 +22,10 @@ module.exports = {
     ios: {
       supportsTablet: true,
       bundleIdentifier: 'com.cicloazul.app',
+      infoPlist: {
+        NSPhotoLibraryAddUsageDescription: 'Este aplicativo precisa acessar sua galeria para salvar fotos das coletas.',
+        NSPhotoLibraryUsageDescription: 'Este aplicativo precisa acessar sua galeria para salvar fotos das coletas.',
+      },
     },
     android: {
       package: 'com.cicloazul.app',

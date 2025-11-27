@@ -1,7 +1,7 @@
 import { Op, WhereOptions } from 'sequelize';
 import { Collection, Client, Unit, WasteType, User, GravimetricData, Image, Recipient } from '@database/models';
 import { AppError } from '@shared/middleware/error.middleware';
-import { HTTP_STATUS } from '@shared/constants';
+import { HTTP_STATUS, ERROR_MESSAGES } from '@shared/constants';
 import { PaginationParams, PaginatedResponse, UserRole, ApprovalStatus, CollectionStatus } from '@shared/types';
 import { createPaginatedResponse } from '@shared/utils/pagination.util';
 import { CreateCollectionDto, UpdateCollectionDto, CollectionFilters } from './collections.types';
@@ -108,6 +108,13 @@ export class CollectionsService {
   ): Promise<Collection> {
     const collection = await this.findById(id, userRole, userClientId);
 
+    if (collection.approvalStatus === ApprovalStatus.APPROVED) {
+      throw new AppError(
+        HTTP_STATUS.FORBIDDEN,
+        ERROR_MESSAGES.CANNOT_EDIT_APPROVED_COLLECTION
+      );
+    }
+
     if (userRole === UserRole.CLIENT && userClientId) {
       if (collection.clientId !== userClientId) {
         throw new AppError(
@@ -135,6 +142,13 @@ export class CollectionsService {
     userClientId?: string
   ): Promise<void> {
     const collection = await this.findById(id, userRole, userClientId);
+
+    if (collection.approvalStatus === ApprovalStatus.APPROVED) {
+      throw new AppError(
+        HTTP_STATUS.FORBIDDEN,
+        ERROR_MESSAGES.CANNOT_DELETE_APPROVED_COLLECTION
+      );
+    }
 
     if (userRole === UserRole.CLIENT && userClientId) {
       if (collection.clientId !== userClientId) {

@@ -1,9 +1,4 @@
-export type DatePeriod = 'today' | 'week' | 'month' | 'year';
-
-export interface DateRange {
-  startDate: string;
-  endDate: string;
-}
+import { DatePeriod, DateRange, CustomDateRange } from '../types';
 
 const formatDateToISO = (date: Date): string => {
   return date.toISOString();
@@ -64,7 +59,10 @@ const getEndOfYear = (date: Date): Date => {
   return getEndOfDay(newDate);
 };
 
-export const getDateRangeForPeriod = (period: DatePeriod): DateRange => {
+export const getDateRangeForPeriod = (
+  period: DatePeriod,
+  customRange?: CustomDateRange
+): DateRange | null => {
   const now = new Date();
 
   switch (period) {
@@ -92,6 +90,15 @@ export const getDateRangeForPeriod = (period: DatePeriod): DateRange => {
         endDate: formatDateToISO(getEndOfYear(now)),
       };
 
+    case 'custom':
+      if (customRange?.startDate && customRange?.endDate) {
+        return {
+          startDate: formatDateToISO(getStartOfDay(customRange.startDate)),
+          endDate: formatDateToISO(getEndOfDay(customRange.endDate)),
+        };
+      }
+      return null;
+
     default:
       return {
         startDate: formatDateToISO(getStartOfDay(now)),
@@ -110,7 +117,25 @@ export const getPeriodLabel = (period: DatePeriod): string => {
       return 'Este Mês';
     case 'year':
       return 'Este Ano';
+    case 'custom':
+      return 'Período Personalizado';
     default:
       return 'Hoje';
   }
+};
+
+export const formatCustomDateRangeLabel = (customRange: CustomDateRange): string => {
+  if (!customRange.startDate || !customRange.endDate) {
+    return 'Selecionar período';
+  }
+
+  const formatDate = (date: Date): string => {
+    return date.toLocaleDateString('pt-BR', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+    });
+  };
+
+  return `${formatDate(customRange.startDate)} - ${formatDate(customRange.endDate)}`;
 };

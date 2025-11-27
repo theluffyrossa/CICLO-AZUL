@@ -8,8 +8,9 @@ import {
   ActivityIndicator,
   Dimensions,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { PieChart } from 'react-native-chart-kit';
+import { BarChart } from 'react-native-gifted-charts';
 import { useQuery } from '@tanstack/react-query';
 import { clientService } from '../../services/client.service';
 import { useSettingsStore } from '../../store/settingsStore';
@@ -17,25 +18,34 @@ import { getFontSizeMultiplier } from '../../theme/dynamicStyles';
 import { colors } from '../../theme/colors';
 import { cleanWasteTypeName, translateTreatmentType } from '../../utils/translations.util';
 import { DateFilterSelector } from '../../components/DateFilterSelector';
-import { DatePeriod, getDateRangeForPeriod } from '../../utils/dateRange.util';
-import { TreatmentType } from '../../types';
+import { getDateRangeForPeriod } from '../../utils/dateRange.util';
+import { TreatmentType, DatePeriod, CustomDateRange } from '../../types';
+import { getWasteTypeIcon } from '../../utils/wasteTypeIcons.util';
 
 export const ClientDashboardScreen: React.FC = () => {
   const [refreshing, setRefreshing] = useState(false);
   const [selectedPeriod, setSelectedPeriod] = useState<DatePeriod>('month');
+  const [customDateRange, setCustomDateRange] = useState<CustomDateRange>({
+    startDate: null,
+    endDate: null
+  });
   const { fontSize } = useSettingsStore();
   const fontMultiplier = getFontSizeMultiplier(fontSize);
 
   const { data: statistics, isLoading, error, refetch } = useQuery({
-    queryKey: ['clientStatistics', selectedPeriod],
+    queryKey: ['clientStatistics', selectedPeriod, customDateRange],
     queryFn: () => {
-      const filters = getDateRangeForPeriod(selectedPeriod);
-      return clientService.getMyStatistics(filters);
+      const dateRange = getDateRangeForPeriod(selectedPeriod, customDateRange);
+      return clientService.getMyStatistics(dateRange || undefined);
     },
   });
 
   const handlePeriodChange = (period: DatePeriod): void => {
     setSelectedPeriod(period);
+  };
+
+  const handleCustomDateRangeChange = (range: CustomDateRange): void => {
+    setCustomDateRange(range);
   };
 
   const onRefresh = async () => {
@@ -46,23 +56,23 @@ export const ClientDashboardScreen: React.FC = () => {
 
   if (isLoading) {
     return (
-      <View style={styles.loadingContainer}>
+      <SafeAreaView style={styles.loadingContainer} edges={['bottom']}>
         <ActivityIndicator size="large" color={colors.primary[600]} />
         <Text style={[styles.loadingText, { fontSize: 16 * fontMultiplier }]}>
           Carregando estatísticas...
         </Text>
-      </View>
+      </SafeAreaView>
     );
   }
 
   if (error) {
     return (
-      <View style={styles.errorContainer}>
+      <SafeAreaView style={styles.errorContainer} edges={['bottom']}>
         <Ionicons name="alert-circle-outline" size={64} color={colors.error.main} />
         <Text style={[styles.errorText, { fontSize: 16 * fontMultiplier }]}>
           Erro ao carregar dados
         </Text>
-      </View>
+      </SafeAreaView>
     );
   }
 
@@ -72,49 +82,57 @@ export const ClientDashboardScreen: React.FC = () => {
     treatmentTypeDistribution: [],
   };
 
+  const wasteTypeColors = [
+    '#FF6B6B',
+    '#4ECDC4',
+    '#FFD93D',
+    '#38BDF8',
+    '#A78BFA',
+    '#FB7185',
+    '#2B87F5',
+    '#FBBF24',
+  ];
+
+  const treatmentTypeColors = [
+    '#0EA5E9',
+    '#F59E0B',
+    '#EF4444',
+    '#8B5CF6',
+  ];
+
+  const getWasteTypeColor = (index: number): string => {
+    return wasteTypeColors[index % wasteTypeColors.length];
+  };
+
+  const getTreatmentTypeColor = (index: number): string => {
+    return treatmentTypeColors[index % treatmentTypeColors.length];
+  };
+
   const chartData = wasteTypeDistribution.slice(0, 5).map((item, index) => {
-    const cleanName = cleanWasteTypeName(item.wasteTypeName);
     return {
-      name: `kg ${cleanName}`,
-      population: item.totalWeightKg,
-      color: [
-        '#FF6B6B',
-        '#4ECDC4',
-        '#FFE66D',
-        '#95E1D3',
-        '#F38181',
-      ][index],
-      legendFontColor: colors.text.primary,
-      legendFontSize: 10,
+      value: item.totalWeightKg,
+      label: '',
+      frontColor: getWasteTypeColor(index),
     };
   });
 
   const treatmentChartData = treatmentTypeDistribution.map((item, index) => {
-    const translatedName = translateTreatmentType(item.treatmentType as TreatmentType);
-    const cleanName = cleanWasteTypeName(translatedName);
     return {
-      name: `kg ${cleanName}`,
-      population: item.totalWeightKg,
-      color: [
-        '#A8E6CF',
-        '#FFD3B6',
-        '#FFAAA5',
-        '#FF8B94',
-      ][index] || '#A8E6CF',
-      legendFontColor: colors.text.primary,
-      legendFontSize: 12,
+      value: item.totalWeightKg,
+      label: '',
+      frontColor: getTreatmentTypeColor(index),
     };
   });
 
   return (
-    <ScrollView
-      style={styles.container}
-      refreshControl={
-        <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-      }
-      accessible={true}
-      accessibilityLabel="Dashboard de estatísticas"
-    >
+    <SafeAreaView style={styles.container} edges={['bottom']}>
+      <ScrollView
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+        }
+        accessible={true}
+        accessibilityLabel="Dashboard de estatísticas"
+      >
       <View style={styles.header}>
         <Text style={[styles.title, { fontSize: 16 * fontMultiplier * 1.5 }]}>
           Meu Painel
@@ -127,6 +145,8 @@ export const ClientDashboardScreen: React.FC = () => {
       <DateFilterSelector
         selectedPeriod={selectedPeriod}
         onPeriodChange={handlePeriodChange}
+        customDateRange={customDateRange}
+        onCustomDateRangeChange={handleCustomDateRangeChange}
       />
 
       {/* Summary Cards */}
@@ -170,25 +190,27 @@ export const ClientDashboardScreen: React.FC = () => {
               </Text>
             </View>
 
-            <View style={styles.chartContainer}>
-              <PieChart
+            <View style={styles.chartContainerLeft}>
+              <BarChart
                 data={chartData}
-                width={Dimensions.get('window').width - 72}
-                height={200}
-                chartConfig={{
-                  color: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
-                }}
-                accessor="population"
-                backgroundColor="transparent"
-                paddingLeft="0"
-                absolute
-                hasLegend={true}
+                width={Dimensions.get('window').width - 80}
+                height={Math.max(chartData.length * 60, 100)}
+                barWidth={28}
+                spacing={24}
+                hideRules
+                horizontal
+                showYAxisIndices={false}
+                hideYAxisText
+                xAxisThickness={1}
+                xAxisColor={colors.neutral[200]}
+                yAxisThickness={0}
+                isAnimated
+                animationDuration={800}
+                barBorderRadius={4}
               />
             </View>
-          </View>
 
-          <View style={styles.section}>
-            <Text style={[styles.listTitle, { fontSize: 16 * fontMultiplier * 1.1 }]}>
+            <Text style={[styles.listTitle, { fontSize: 16 * fontMultiplier * 1.1, marginTop: 12 }]}>
               Detalhes por Tipo de Resíduo
             </Text>
 
@@ -201,15 +223,24 @@ export const ClientDashboardScreen: React.FC = () => {
               >
                 <View style={styles.wasteTypeHeader}>
                   <View style={styles.wasteTypeNameContainer}>
-                    <Text style={[styles.wasteTypeName, { fontSize: 15 * fontMultiplier }]}>
-                      {cleanWasteTypeName(item.wasteTypeName)}
-                    </Text>
+                    <View style={styles.wasteTypeNameRow}>
+                      <View style={[styles.iconContainer, { backgroundColor: getWasteTypeColor(index) + '15' }]}>
+                        <Ionicons
+                          name={getWasteTypeIcon(item.wasteTypeName)}
+                          size={22}
+                          color={getWasteTypeColor(index)}
+                        />
+                      </View>
+                      <Text style={[styles.wasteTypeName, { fontSize: 15 * fontMultiplier }]}>
+                        {cleanWasteTypeName(item.wasteTypeName)}
+                      </Text>
+                    </View>
                     <Text style={[styles.wasteTypeCategory, { fontSize: 11 * fontMultiplier }]}>
                       {item.category}
                     </Text>
                   </View>
                   <View style={styles.wasteTypeStats}>
-                    <Text style={[styles.wasteTypeWeight, { fontSize: 17 * fontMultiplier }]}>
+                    <Text style={[styles.wasteTypeWeight, { fontSize: 17 * fontMultiplier, color: getWasteTypeColor(index) }]}>
                       {parseFloat(String(item.totalWeightKg)).toFixed(1)} kg
                     </Text>
                     <Text style={[styles.wasteTypeCount, { fontSize: 12 * fontMultiplier }]}>
@@ -217,20 +248,6 @@ export const ClientDashboardScreen: React.FC = () => {
                     </Text>
                   </View>
                 </View>
-                <View style={styles.progressBarContainer}>
-                  <View
-                    style={[
-                      styles.progressBar,
-                      {
-                        width: `${parseFloat(String(item.percentage))}%`,
-                        backgroundColor: getCategoryColor(item.category),
-                      },
-                    ]}
-                  />
-                </View>
-                <Text style={[styles.wasteTypePercentage, { fontSize: 13 * fontMultiplier }]}>
-                  {parseFloat(String(item.percentage)).toFixed(1)}%
-                </Text>
               </View>
             ))}
           </View>
@@ -247,25 +264,27 @@ export const ClientDashboardScreen: React.FC = () => {
               </Text>
             </View>
 
-            <View style={styles.chartContainer}>
-              <PieChart
+            <View style={styles.chartContainerLeft}>
+              <BarChart
                 data={treatmentChartData}
-                width={Dimensions.get('window').width - 72}
-                height={200}
-                chartConfig={{
-                  color: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
-                }}
-                accessor="population"
-                backgroundColor="transparent"
-                paddingLeft="0"
-                absolute
-                hasLegend={true}
+                width={Dimensions.get('window').width - 80}
+                height={Math.max(treatmentChartData.length * 60, 100)}
+                barWidth={32}
+                spacing={32}
+                hideRules
+                horizontal
+                showYAxisIndices={false}
+                hideYAxisText
+                xAxisThickness={1}
+                xAxisColor={colors.neutral[200]}
+                yAxisThickness={0}
+                isAnimated
+                animationDuration={800}
+                barBorderRadius={4}
               />
             </View>
-          </View>
 
-          <View style={styles.section}>
-            <Text style={[styles.listTitle, { fontSize: 16 * fontMultiplier * 1.1 }]}>
+            <Text style={[styles.listTitle, { fontSize: 16 * fontMultiplier * 1.1, marginTop: 12 }]}>
               Detalhes por Tipo de Tratamento
             </Text>
 
@@ -277,19 +296,17 @@ export const ClientDashboardScreen: React.FC = () => {
                 accessibilityLabel={`${translateTreatmentType(item.treatmentType as TreatmentType)}: ${parseFloat(String(item.totalWeightKg)).toFixed(2)} kg, ${parseFloat(String(item.percentage)).toFixed(1)}% do total, ${item.count} coletas`}
               >
                 <View style={styles.treatmentHeader}>
-                  <Text style={[styles.treatmentName, { fontSize: 15 * fontMultiplier }]}>
-                    {translateTreatmentType(item.treatmentType as TreatmentType)}
-                  </Text>
+                  <View style={styles.treatmentNameRow}>
+                    <View style={[styles.colorIndicator, { backgroundColor: getTreatmentTypeColor(index) }]} />
+                    <Text style={[styles.treatmentName, { fontSize: 15 * fontMultiplier }]}>
+                      {translateTreatmentType(item.treatmentType as TreatmentType)}
+                    </Text>
+                  </View>
                   <View
                     style={[
                       styles.treatmentBadge,
                       {
-                        backgroundColor: [
-                          colors.primary[100],
-                          colors.secondary[100],
-                          colors.primary[200],
-                          colors.secondary[200],
-                        ][index] || colors.primary[100],
+                        backgroundColor: getTreatmentTypeColor(index) + '20',
                       },
                     ]}
                   >
@@ -298,12 +315,7 @@ export const ClientDashboardScreen: React.FC = () => {
                         styles.treatmentBadgeText,
                         {
                           fontSize: 10 * fontMultiplier,
-                          color: [
-                            colors.primary[700],
-                            colors.secondary[700],
-                            colors.primary[800],
-                            colors.secondary[800],
-                          ][index] || colors.primary[600],
+                          color: getTreatmentTypeColor(index),
                         },
                       ]}
                     >
@@ -312,7 +324,7 @@ export const ClientDashboardScreen: React.FC = () => {
                   </View>
                 </View>
                 <View style={styles.treatmentStats}>
-                  <Text style={[styles.treatmentWeight, { fontSize: 17 * fontMultiplier }]}>
+                  <Text style={[styles.treatmentWeight, { fontSize: 17 * fontMultiplier, color: getTreatmentTypeColor(index) }]}>
                     {parseFloat(String(item.totalWeightKg)).toFixed(1)} kg
                   </Text>
                   <Text style={[styles.treatmentPercentage, { fontSize: 15 * fontMultiplier }]}>
@@ -333,20 +345,9 @@ export const ClientDashboardScreen: React.FC = () => {
           </Text>
         </View>
       )}
-    </ScrollView>
+      </ScrollView>
+    </SafeAreaView>
   );
-};
-
-const getCategoryColor = (category: string): string => {
-  const categoryColors: Record<string, string> = {
-    ORGANIC: colors.primary[500],
-    RECYCLABLE: colors.secondary[500],
-    HAZARDOUS: colors.primary[800],
-    ELECTRONIC: colors.secondary[700],
-    CONSTRUCTION: colors.primary[400],
-    OTHER: colors.secondary[400],
-  };
-  return categoryColors[category] || colors.primary[600];
 };
 
 const styles = StyleSheet.create({
@@ -478,11 +479,28 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingRight: 12,
   },
+  wasteTypeNameRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 4,
+  },
+  colorIndicator: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+  },
+  iconContainer: {
+    width: 40,
+    height: 40,
+    borderRadius: 8,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   wasteTypeName: {
     fontWeight: '700',
     color: colors.text.primary,
     fontSize: 15,
-    marginBottom: 4,
   },
   wasteTypeCategory: {
     color: colors.text.tertiary,
@@ -536,12 +554,17 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 14,
   },
+  treatmentNameRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    flex: 1,
+    paddingRight: 12,
+  },
   treatmentName: {
     fontWeight: '700',
     color: colors.text.primary,
-    flex: 1,
     fontSize: 15,
-    paddingRight: 12,
   },
   treatmentBadge: {
     paddingHorizontal: 14,
@@ -574,5 +597,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     marginVertical: 8,
+  },
+  chartContainerLeft: {
+    alignItems: 'flex-start',
+    justifyContent: 'flex-start',
+    marginVertical: 8,
+    marginLeft: -60,
   },
 });

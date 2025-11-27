@@ -57,18 +57,28 @@ class ApiService {
         });
         return response;
       },
-      async (error: AxiosError) => {
+      async (error: AxiosError<{ message?: string; error?: string }>) => {
         const originalRequest = error.config as any;
+
+        const errorMessage = error.response?.data?.message || error.response?.data?.error || error.message;
 
         logger.error('Response Error', {
           status: error.response?.status,
-          message: error.message,
+          message: errorMessage,
           code: error.code,
           url: error.config?.url,
           baseURL: error.config?.baseURL,
         });
 
         if (error.response?.status === 401 && !originalRequest._retry) {
+          const isLoginRequest = error.config?.url?.includes('/auth/login');
+
+          if (isLoginRequest) {
+            const customError = new Error(errorMessage);
+            (customError as any).response = error.response;
+            return Promise.reject(customError);
+          }
+
           originalRequest._retry = true;
           logger.info('Tentando refresh token');
 
@@ -96,7 +106,9 @@ class ApiService {
           }
         }
 
-        return Promise.reject(error);
+        const customError = new Error(errorMessage);
+        (customError as any).response = error.response;
+        return Promise.reject(customError);
       }
     );
   }

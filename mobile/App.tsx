@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import { StatusBar } from 'expo-status-bar';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { AppNavigator } from './src/navigation/AppNavigator';
 import { useAuthStore } from './src/store/authStore';
 import { useSettingsStore } from './src/store/settingsStore';
@@ -32,9 +33,11 @@ export default function App(): React.JSX.Element {
   }, [checkAuth, loadSettings]);
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <StatusBar style="auto" />
-      <AppNavigator />
-    </QueryClientProvider>
+    <SafeAreaProvider>
+      <QueryClientProvider client={queryClient}>
+        <StatusBar style="light" translucent backgroundColor="transparent" />
+        <AppNavigator />
+      </QueryClientProvider>
+    </SafeAreaProvider>
   );
 }

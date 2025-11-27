@@ -127,10 +127,6 @@ export const ClientNavigator: React.FC = () => {
         },
         tabBarActiveTintColor: colors.primary[600],
         tabBarInactiveTintColor: colors.neutral[500],
-        tabBarStyle: {
-          paddingBottom: Platform.OS === 'ios' ? 20 : 5,
-          height: Platform.OS === 'ios' ? 85 : 60,
-        },
         tabBarLabelStyle: {
           fontSize: 12,
           fontWeight: '600',

@@ -14,6 +14,8 @@ export interface SelectOption {
   label: string;
   value: string;
   emoji?: string;
+  icon?: React.ComponentProps<typeof Ionicons>['name'];
+  iconColor?: string;
 }
 
 interface CustomSelectProps {
@@ -29,7 +31,7 @@ interface CustomSelectProps {
 const COLORS = {
   background: '#f5f5f5',
   surface: '#ffffff',
-  primary: '#4CAF50',
+  primary: '#2B87F5',
   text: '#333333',
   textSecondary: '#666666',
   border: '#ddd',
@@ -73,9 +75,15 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
         accessibilityState={{ disabled }}
       >
         <View style={styles.selectedContent}>
-          {selectedOption?.emoji && (
+          {selectedOption?.icon ? (
+            <Ionicons
+              name={selectedOption.icon}
+              size={20}
+              color={selectedOption.iconColor || COLORS.primary}
+            />
+          ) : selectedOption?.emoji ? (
             <Text style={styles.selectedEmoji}>{selectedOption.emoji}</Text>
-          )}
+          ) : null}
           <Text
             style={[
               styles.selectedText,
@@ -120,7 +128,15 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
                   accessibilityState={{ selected: item.value === value }}
                 >
                   <View style={styles.optionContent}>
-                    {item.emoji && <Text style={styles.optionEmoji}>{item.emoji}</Text>}
+                    {item.icon ? (
+                      <Ionicons
+                        name={item.icon}
+                        size={22}
+                        color={item.value === value ? COLORS.surface : (item.iconColor || COLORS.primary)}
+                      />
+                    ) : item.emoji ? (
+                      <Text style={styles.optionEmoji}>{item.emoji}</Text>
+                    ) : null}
                     <Text
                       style={[
                         styles.optionText,

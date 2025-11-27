@@ -25,7 +25,6 @@ const downloadFile = async (
     }
 
     const uint8Array = new Uint8Array(response.data);
-
     const file = new File(Paths.cache, filename);
 
     if (file.exists) {
@@ -47,7 +46,7 @@ const downloadFile = async (
 
     await Sharing.shareAsync(file.uri, {
       mimeType: filename.endsWith('.pdf') ? 'application/pdf' : 'text/csv',
-      dialogTitle: 'Compartilhar Relatório',
+      dialogTitle: 'Salvar Relatório',
       UTI: filename.endsWith('.pdf') ? 'com.adobe.pdf' : 'public.comma-separated-values-text',
     });
   } catch (error) {

@@ -8,6 +8,7 @@ import {
   RefreshControl,
   ActivityIndicator,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { Ionicons } from '@expo/vector-icons';
@@ -111,15 +112,15 @@ export const PendingCollectionsScreen: React.FC = () => {
 
   if (loading && collections.length === 0) {
     return (
-      <View style={styles.centerContainer}>
+      <SafeAreaView style={styles.centerContainer} edges={['bottom']}>
         <ActivityIndicator size="large" color={colors.primary[600]} />
         <Text style={styles.loadingText}>Carregando coletas pendentes...</Text>
-      </View>
+      </SafeAreaView>
     );
   }
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['bottom']}>
       <FlatList
         data={collections}
         renderItem={renderItem}
@@ -159,7 +160,7 @@ export const PendingCollectionsScreen: React.FC = () => {
           ) : null
         }
       />
-    </View>
+    </SafeAreaView>
   );
 };
 

@@ -12,6 +12,7 @@ import {
   TouchableWithoutFeedback,
   Keyboard,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { collectionsService } from '@/services/collections.service';
@@ -143,26 +144,26 @@ export const CollectionApprovalScreen: React.FC = () => {
 
   if (loading) {
     return (
-      <View style={styles.centerContainer}>
+      <SafeAreaView style={styles.centerContainer} edges={['bottom']}>
         <ActivityIndicator size="large" color={colors.primary[600]} />
         <Text style={styles.loadingText}>Carregando dados da coleta...</Text>
-      </View>
+      </SafeAreaView>
     );
   }
 
   if (!collection) {
     return (
-      <View style={styles.centerContainer}>
+      <SafeAreaView style={styles.centerContainer} edges={['bottom']}>
         <Text style={styles.errorText}>Coleta não encontrada</Text>
-      </View>
+      </SafeAreaView>
     );
   }
 
   const isPending = collection.approvalStatus === ApprovalStatus.PENDING_APPROVAL;
 
   return (
-    <>
-      <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+    <SafeAreaView style={styles.container} edges={['bottom']}>
+      <ScrollView contentContainerStyle={styles.content}>
         <View style={styles.header}>
           <Text style={styles.title}>Detalhes da Coleta</Text>
           {getStatusBadge(collection.approvalStatus)}
@@ -353,7 +354,7 @@ export const CollectionApprovalScreen: React.FC = () => {
           </View>
         </TouchableWithoutFeedback>
       </Modal>
-    </>
+    </SafeAreaView>
   );
 };
 

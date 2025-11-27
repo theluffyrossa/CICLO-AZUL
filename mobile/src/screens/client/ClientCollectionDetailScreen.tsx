@@ -5,8 +5,8 @@ import {
   StyleSheet,
   ScrollView,
   ActivityIndicator,
-  Image,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useQuery } from '@tanstack/react-query';
 import { useRoute, RouteProp } from '@react-navigation/native';
@@ -15,7 +15,8 @@ import { CollectionStatus, ApprovalStatus } from '../../types';
 import { useSettingsStore } from '../../store/settingsStore';
 import { getFontSizeMultiplier } from '../../theme/dynamicStyles';
 import { getImageUrl } from '../../utils/image.util';
-import { cleanWasteTypeName } from '../../utils/translations.util';
+import { cleanWasteTypeName, translateTreatmentType } from '../../utils/translations.util';
+import { ImageCard } from '@/components/collections/ImageCard';
 
 type RouteParams = {
   ClientCollectionDetail: {
@@ -36,23 +37,23 @@ export const ClientCollectionDetailScreen: React.FC = () => {
 
   if (isLoading) {
     return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#4CAF50" />
+      <SafeAreaView style={styles.loadingContainer} edges={['bottom']}>
+        <ActivityIndicator size="large" color="#2B87F5" />
         <Text style={[styles.loadingText, { fontSize: 16 * fontMultiplier }]}>
           Carregando detalhes...
         </Text>
-      </View>
+      </SafeAreaView>
     );
   }
 
   if (error || !collection) {
     return (
-      <View style={styles.errorContainer}>
+      <SafeAreaView style={styles.errorContainer} edges={['bottom']}>
         <Ionicons name="alert-circle-outline" size={64} color="#f44336" />
         <Text style={[styles.errorText, { fontSize: 16 * fontMultiplier }]}>
           Erro ao carregar detalhes da coleta
         </Text>
-      </View>
+      </SafeAreaView>
     );
   }
 
@@ -62,7 +63,8 @@ export const ClientCollectionDetailScreen: React.FC = () => {
   ) || 0;
 
   return (
-    <ScrollView style={styles.container} accessible={true} accessibilityLabel="Detalhes da coleta">
+    <SafeAreaView style={styles.container} edges={['bottom']}>
+      <ScrollView accessible={true} accessibilityLabel="Detalhes da coleta">
       {/* Header Card */}
       <View style={styles.headerCard}>
         <Text style={[styles.wasteTypeName, { fontSize: 16 * fontMultiplier * 1.3 }]}>
@@ -82,7 +84,7 @@ export const ClientCollectionDetailScreen: React.FC = () => {
         </Text>
 
         <View style={styles.infoRow}>
-          <Ionicons name="calendar-outline" size={20} color="#4CAF50" />
+          <Ionicons name="calendar-outline" size={20} color="#2B87F5" />
           <View style={styles.infoContent}>
             <Text style={[styles.infoLabel, { fontSize: 16 * fontMultiplier * 0.9 }]}>
               Data da Coleta
@@ -94,7 +96,7 @@ export const ClientCollectionDetailScreen: React.FC = () => {
         </View>
 
         <View style={styles.infoRow}>
-          <Ionicons name="location-outline" size={20} color="#4CAF50" />
+          <Ionicons name="location-outline" size={20} color="#2B87F5" />
           <View style={styles.infoContent}>
             <Text style={[styles.infoLabel, { fontSize: 16 * fontMultiplier * 0.9 }]}>
               Local de Coleta
@@ -111,7 +113,7 @@ export const ClientCollectionDetailScreen: React.FC = () => {
         </View>
 
         <View style={styles.infoRow}>
-          <Ionicons name="person-outline" size={20} color="#4CAF50" />
+          <Ionicons name="person-outline" size={20} color="#2B87F5" />
           <View style={styles.infoContent}>
             <Text style={[styles.infoLabel, { fontSize: 16 * fontMultiplier * 0.9 }]}>
               Operador Responsável
@@ -123,7 +125,7 @@ export const ClientCollectionDetailScreen: React.FC = () => {
         </View>
 
         <View style={styles.infoRow}>
-          <Ionicons name="business-outline" size={20} color="#4CAF50" />
+          <Ionicons name="business-outline" size={20} color="#2B87F5" />
           <View style={styles.infoContent}>
             <Text style={[styles.infoLabel, { fontSize: 16 * fontMultiplier * 0.9 }]}>
               Destinatário
@@ -133,6 +135,18 @@ export const ClientCollectionDetailScreen: React.FC = () => {
             </Text>
             <Text style={[styles.infoSecondary, { fontSize: 16 * fontMultiplier * 0.85 }]}>
               {collection.recipient?.type}
+            </Text>
+          </View>
+        </View>
+
+        <View style={styles.infoRow}>
+          <Ionicons name="sync-outline" size={20} color="#2B87F5" />
+          <View style={styles.infoContent}>
+            <Text style={[styles.infoLabel, { fontSize: 16 * fontMultiplier * 0.9 }]}>
+              Tipo de Tratamento
+            </Text>
+            <Text style={[styles.infoValue, { fontSize: 16 * fontMultiplier }]}>
+              {translateTreatmentType(collection.treatmentType)}
             </Text>
           </View>
         </View>
@@ -149,7 +163,7 @@ export const ClientCollectionDetailScreen: React.FC = () => {
             <Ionicons
               name={collection.approvalStatus === ApprovalStatus.APPROVED ? 'checkmark-circle' : 'close-circle'}
               size={20}
-              color={collection.approvalStatus === ApprovalStatus.APPROVED ? '#4CAF50' : '#f44336'}
+              color={collection.approvalStatus === ApprovalStatus.APPROVED ? '#2B87F5' : '#f44336'}
             />
             <View style={styles.infoContent}>
               <Text style={[styles.infoLabel, { fontSize: 16 * fontMultiplier * 0.9 }]}>
@@ -217,7 +231,7 @@ export const ClientCollectionDetailScreen: React.FC = () => {
           </Text>
 
           <View style={styles.weightCard}>
-            <Ionicons name="scale-outline" size={32} color="#4CAF50" />
+            <Ionicons name="scale-outline" size={32} color="#2B87F5" />
             <Text style={[styles.weightValue, { fontSize: 16 * fontMultiplier * 2 }]}>
               {totalWeight.toFixed(1)}
             </Text>
@@ -253,20 +267,12 @@ export const ClientCollectionDetailScreen: React.FC = () => {
 
           <View style={styles.imagesGrid}>
             {collection.images.map((img) => (
-              <View key={img.id} style={styles.imageContainer}>
-                <Image
-                  source={{ uri: getImageUrl(img.url) }}
-                  style={styles.image}
-                  resizeMode="cover"
-                  accessible={true}
-                  accessibilityLabel={`Foto da coleta, ${img.description || 'sem descrição'}`}
-                />
-                {img.consentGiven && (
-                  <View style={styles.consentBadge}>
-                    <Ionicons name="shield-checkmark" size={16} color="#4CAF50" />
-                  </View>
-                )}
-              </View>
+              <ImageCard
+                key={img.id}
+                imageUrl={getImageUrl(img.url)}
+                consentGiven={img.consentGiven}
+                accessibilityLabel={`Foto da coleta, ${img.description || 'sem descrição'}`}
+              />
             ))}
           </View>
         </View>
@@ -283,7 +289,8 @@ export const ClientCollectionDetailScreen: React.FC = () => {
           </Text>
         </View>
       )}
-    </ScrollView>
+      </ScrollView>
+    </SafeAreaView>
   );
 };
 
@@ -312,7 +319,7 @@ const getStatusStyle = (status: CollectionStatus) => {
   const styles: Record<CollectionStatus, object> = {
     SCHEDULED: { backgroundColor: '#FFF3E0' },
     IN_PROGRESS: { backgroundColor: '#E3F2FD' },
-    COMPLETED: { backgroundColor: '#E8F5E9' },
+    COMPLETED: { backgroundColor: '#E0F2FE' },
     CANCELLED: { backgroundColor: '#FFEBEE' },
   };
   return styles[status] || { backgroundColor: '#f5f5f5' };
@@ -346,7 +353,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   headerCard: {
-    backgroundColor: '#4CAF50',
+    backgroundColor: '#2B87F5',
     padding: 20,
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -411,7 +418,7 @@ const styles = StyleSheet.create({
   },
   weightValue: {
     fontWeight: 'bold',
-    color: '#4CAF50',
+    color: '#2B87F5',
     marginTop: 8,
   },
   weightLabel: {
@@ -434,7 +441,7 @@ const styles = StyleSheet.create({
   },
   gravimetricWeight: {
     fontWeight: '600',
-    color: '#4CAF50',
+    color: '#2B87F5',
   },
   gravimetricSource: {
     color: '#999',
@@ -469,7 +476,7 @@ const styles = StyleSheet.create({
     lineHeight: 24,
   },
   approvedText: {
-    color: '#4CAF50',
+    color: '#2B87F5',
   },
   rejectedText: {
     color: '#f44336',

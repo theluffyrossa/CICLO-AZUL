@@ -50,13 +50,23 @@ export const collectionsService = {
   },
 
   async updateCollection(id: string, data: Partial<CreateCollectionData>): Promise<Collection> {
-    const response = await api.put<ApiResponse<Collection>>(`/collections/${id}`, data);
-    if (!response.data.data) throw new Error('Invalid response');
-    return response.data.data;
+    try {
+      const response = await api.put<ApiResponse<Collection>>(`/collections/${id}`, data);
+      if (!response.data.data) throw new Error('Invalid response');
+      return response.data.data;
+    } catch (error) {
+      const errorMessage = (error as { message?: string })?.message || 'Erro ao atualizar coleta';
+      throw new Error(errorMessage);
+    }
   },
 
   async deleteCollection(id: string): Promise<void> {
-    await api.delete(`/collections/${id}`);
+    try {
+      await api.delete(`/collections/${id}`);
+    } catch (error) {
+      const errorMessage = (error as { message?: string })?.message || 'Erro ao excluir coleta';
+      throw new Error(errorMessage);
+    }
   },
 
   async getPendingCollections(page?: number, limit?: number): Promise<PaginatedResponse<Collection>> {

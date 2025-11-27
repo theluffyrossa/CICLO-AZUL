@@ -139,7 +139,7 @@ export const RecipientFormScreen = ({ route, navigation }: Props): React.JSX.Ele
 
   if (loading) {
     return (
-      <SafeAreaView style={styles.container}>
+      <SafeAreaView style={styles.container} edges={['bottom']}>
         <LoadingSpinner />
       </SafeAreaView>
     );

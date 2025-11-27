@@ -94,8 +94,7 @@ export const ImagePickerInput: React.FC<ImagePickerInputProps> = ({
         mediaTypes: ImagePicker.MediaTypeOptions.Images,
         allowsMultipleSelection: false,
         quality: 0.8,
-        allowsEditing: true,
-        aspect: [4, 3],
+        allowsEditing: false,
       });
 
       if (!result.canceled && result.assets && result.assets.length > 0) {
@@ -140,8 +139,7 @@ export const ImagePickerInput: React.FC<ImagePickerInputProps> = ({
       const result = await ImagePicker.launchCameraAsync({
         mediaTypes: ImagePicker.MediaTypeOptions.Images,
         quality: 0.8,
-        allowsEditing: true,
-        aspect: [4, 3],
+        allowsEditing: false,
       });
 
       if (!result.canceled && result.assets && result.assets.length > 0) {

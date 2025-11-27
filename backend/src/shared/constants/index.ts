@@ -37,6 +37,10 @@ export const ERROR_MESSAGES = {
   FORBIDDEN: 'Access forbidden',
   NOT_FOUND: 'Resource not found',
   INVALID_CREDENTIALS: 'Invalid email or password',
+  USER_NOT_FOUND: 'Usuário não encontrado. Verifique se digitou corretamente.',
+  USERNAME_CASE_MISMATCH: 'Usuário encontrado, mas com diferença entre maiúsculas/minúsculas. Tente: ',
+  INCORRECT_PASSWORD: 'Senha incorreta. Por favor, verifique seu código de acesso.',
+  USER_INACTIVE: 'Esta conta está inativa. Entre em contato com o administrador.',
   EMAIL_ALREADY_EXISTS: 'Email already exists',
   WEAK_PASSWORD: 'Password must be at least 4 characters',
   INVALID_TOKEN: 'Invalid or expired token',
@@ -44,6 +48,8 @@ export const ERROR_MESSAGES = {
   VALIDATION_ERROR: 'Validation error',
   FILE_TOO_LARGE: 'File size exceeds maximum allowed',
   INVALID_FILE_TYPE: 'Invalid file type',
+  CANNOT_EDIT_APPROVED_COLLECTION: 'Coletas validadas não podem ser editadas',
+  CANNOT_DELETE_APPROVED_COLLECTION: 'Coletas validadas não podem ser excluídas',
 } as const;
 
 export const SUCCESS_MESSAGES = {

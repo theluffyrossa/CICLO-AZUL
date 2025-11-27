@@ -9,6 +9,7 @@ import {
   Alert,
   ScrollView,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Camera, CameraType, FlashMode } from 'expo-camera';
 import * as ImagePicker from 'expo-image-picker';
 import * as ImageManipulator from 'expo-image-manipulator';
@@ -120,8 +121,7 @@ export const CameraScreen: React.FC = () => {
       const result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ImagePicker.MediaTypeOptions.Images,
         quality: 0.9,
-        allowsEditing: true,
-        aspect: [4, 3],
+        allowsEditing: false,
       });
 
       if (!result.canceled && result.assets[0]) {
@@ -282,17 +282,17 @@ export const CameraScreen: React.FC = () => {
 
   if (hasPermission === false) {
     return (
-      <View style={styles.container}>
+      <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
         <Text style={styles.noPermissionText}>
           Sem acesso à câmera. Por favor, permita nas configurações.
         </Text>
-      </View>
+      </SafeAreaView>
     );
   }
 
   if (capturedImage) {
     return (
-      <View style={styles.container}>
+      <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
         <Image source={{ uri: capturedImage }} style={styles.preview} />
 
         <ScrollView style={styles.controls} contentContainerStyle={styles.controlsContent}>
@@ -337,45 +337,47 @@ export const CameraScreen: React.FC = () => {
         </ScrollView>
 
         {toast && <Toast message={toast.message} type={toast.type} onHide={() => setToast(null)} />}
-      </View>
+      </SafeAreaView>
     );
   }
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['bottom']}>
       <Camera
         ref={cameraRef}
         style={styles.camera}
         type={cameraType}
         flashMode={flashMode}
       >
-        <View style={styles.cameraControls}>
-          <TouchableOpacity
-            style={styles.iconButton}
-            onPress={toggleFlash}
-            accessible={true}
-            accessibilityRole="button"
-            accessibilityLabel={`Flash ${flashMode === FlashMode.off ? 'desligado' : 'ligado'}`}
-            accessibilityHint="Toque duas vezes para alternar flash"
-          >
-            <Ionicons
-              name={flashMode === FlashMode.off ? 'flash-off' : 'flash'}
-              size={32}
-              color={colors.neutral[50]}
-            />
-          </TouchableOpacity>
+        <SafeAreaView style={styles.cameraControlsWrapper} edges={['top']}>
+          <View style={styles.cameraControls}>
+            <TouchableOpacity
+              style={styles.iconButton}
+              onPress={toggleFlash}
+              accessible={true}
+              accessibilityRole="button"
+              accessibilityLabel={`Flash ${flashMode === FlashMode.off ? 'desligado' : 'ligado'}`}
+              accessibilityHint="Toque duas vezes para alternar flash"
+            >
+              <Ionicons
+                name={flashMode === FlashMode.off ? 'flash-off' : 'flash'}
+                size={32}
+                color={colors.neutral[50]}
+              />
+            </TouchableOpacity>
 
-          <TouchableOpacity
-            style={styles.iconButton}
-            onPress={toggleCameraType}
-            accessible={true}
-            accessibilityRole="button"
-            accessibilityLabel="Alternar câmera"
-            accessibilityHint="Toque duas vezes para trocar entre câmera frontal e traseira"
-          >
-            <Ionicons name="camera-reverse" size={32} color={colors.neutral[50]} />
-          </TouchableOpacity>
-        </View>
+            <TouchableOpacity
+              style={styles.iconButton}
+              onPress={toggleCameraType}
+              accessible={true}
+              accessibilityRole="button"
+              accessibilityLabel="Alternar câmera"
+              accessibilityHint="Toque duas vezes para trocar entre câmera frontal e traseira"
+            >
+              <Ionicons name="camera-reverse" size={32} color={colors.neutral[50]} />
+            </TouchableOpacity>
+          </View>
+        </SafeAreaView>
       </Camera>
 
       <View style={styles.bottomControls}>
@@ -405,7 +407,7 @@ export const CameraScreen: React.FC = () => {
       </View>
 
       {toast && <Toast message={toast.message} type={toast.type} onHide={() => setToast(null)} />}
-    </View>
+    </SafeAreaView>
   );
 };
 
@@ -417,11 +419,13 @@ const styles = StyleSheet.create({
   camera: {
     flex: 1,
   },
+  cameraControlsWrapper: {
+    backgroundColor: 'transparent',
+  },
   cameraControls: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     padding: spacing.md,
-    paddingTop: spacing.xl,
   },
   iconButton: {
     width: 50,

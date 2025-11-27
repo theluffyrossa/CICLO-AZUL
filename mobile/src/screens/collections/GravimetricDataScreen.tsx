@@ -9,6 +9,7 @@ import {
   Alert,
   Modal,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRoute, useNavigation, RouteProp } from '@react-navigation/native';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Ionicons } from '@expo/vector-icons';
@@ -293,7 +294,7 @@ export const GravimetricDataScreen: React.FC = () => {
   }
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['bottom']}>
       <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
         {/* Total Weight Card - Only show if there's data */}
         {gravimetricData && gravimetricData.length > 0 && (
@@ -583,7 +584,7 @@ export const GravimetricDataScreen: React.FC = () => {
       </Modal>
 
       {toast && <Toast message={toast.message} type={toast.type} onHide={() => setToast(null)} />}
-    </View>
+    </SafeAreaView>
   );
 };
 

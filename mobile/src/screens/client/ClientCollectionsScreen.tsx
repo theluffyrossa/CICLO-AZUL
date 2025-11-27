@@ -8,6 +8,7 @@ import {
   ActivityIndicator,
   RefreshControl,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useQuery } from '@tanstack/react-query';
 import { useNavigation } from '@react-navigation/native';
@@ -106,18 +107,18 @@ export const ClientCollectionsScreen: React.FC = () => {
 
   if (isLoading && !data) {
     return (
-      <View style={styles.loadingContainer}>
+      <SafeAreaView style={styles.loadingContainer} edges={['bottom']}>
         <ActivityIndicator size="large" color={colors.primary[600]} />
         <Text style={[styles.loadingText, { fontSize: 16 * fontMultiplier }]}>
           Carregando coletas...
         </Text>
-      </View>
+      </SafeAreaView>
     );
   }
 
   if (error) {
     return (
-      <View style={styles.errorContainer}>
+      <SafeAreaView style={styles.errorContainer} edges={['bottom']}>
         <Ionicons name="alert-circle-outline" size={64} color={colors.error.main} />
         <Text style={[styles.errorText, { fontSize: 16 * fontMultiplier }]}>
           Erro ao carregar coletas
@@ -127,7 +128,7 @@ export const ClientCollectionsScreen: React.FC = () => {
             Tentar Novamente
           </Text>
         </TouchableOpacity>
-      </View>
+      </SafeAreaView>
     );
   }
 
@@ -135,7 +136,7 @@ export const ClientCollectionsScreen: React.FC = () => {
   const pagination = data?.pagination;
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['bottom']}>
       <View style={styles.header}>
         <Text style={[styles.title, { fontSize: 16 * fontMultiplier * 1.5 }]}>
           Minhas Coletas
@@ -175,7 +176,7 @@ export const ClientCollectionsScreen: React.FC = () => {
       >
         <Ionicons name="add" size={24} color={colors.white} />
       </TouchableOpacity>
-    </View>
+    </SafeAreaView>
   );
 };
 

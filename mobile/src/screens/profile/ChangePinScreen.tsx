@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, ScrollView, StyleSheet, KeyboardAvoidingView, Platform, AccessibilityInfo } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 
 import { PinInput } from '@/components/common';
@@ -39,11 +40,12 @@ export const ChangePinScreen: React.FC = () => {
   };
 
   return (
-    <KeyboardAvoidingView
-      style={styles.container}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-    >
-      <ScrollView style={styles.scrollView} contentContainerStyle={styles.content}>
+    <SafeAreaView style={styles.container} edges={['bottom']}>
+      <KeyboardAvoidingView
+        style={styles.container}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      >
+        <ScrollView style={styles.scrollView} contentContainerStyle={styles.content}>
         <Text style={styles.description}>
           Digite seu PIN atual e escolha um novo PIN de 4 dígitos numéricos
         </Text>
@@ -80,10 +82,11 @@ export const ChangePinScreen: React.FC = () => {
           <View style={styles.buttonSpacer} />
           <Button title="Alterar PIN" variant="primary" onPress={handleSave} fullWidth />
         </View>
-      </ScrollView>
+        </ScrollView>
 
-      {toast && <Toast message={toast.message} type={toast.type} onHide={() => setToast(null)} />}
-    </KeyboardAvoidingView>
+        {toast && <Toast message={toast.message} type={toast.type} onHide={() => setToast(null)} />}
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 };
 

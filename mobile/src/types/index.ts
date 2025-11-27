@@ -212,6 +212,18 @@ export interface UploadImageInput {
   description?: string;
 }
 
+export type DatePeriod = 'today' | 'week' | 'month' | 'year' | 'custom';
+
+export interface CustomDateRange {
+  startDate: Date | null;
+  endDate: Date | null;
+}
+
+export interface DateRange {
+  startDate: string;
+  endDate: string;
+}
+
 export interface DashboardFilters {
   startDate?: string;
   endDate?: string;

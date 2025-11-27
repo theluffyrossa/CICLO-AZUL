@@ -12,6 +12,7 @@ import {
   TextInput,
   Image,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import DateTimePicker from '@react-native-community/datetimepicker';
@@ -32,6 +33,7 @@ import { WeightInput } from '@/components/WeightInput';
 import { CustomSelect } from '@/components/CustomSelect';
 import { CollectionStatus, GravimetricDataSource, TreatmentType, UserRole } from '@/types';
 import { translateTreatmentType } from '@/utils/translations.util';
+import { getWasteTypeIcon } from '@/utils/wasteTypeIcons.util';
 
 const TREATMENT_TYPE_EMOJIS: Record<TreatmentType, string> = {
   [TreatmentType.RECYCLING]: '♻️',
@@ -41,53 +43,12 @@ const TREATMENT_TYPE_EMOJIS: Record<TreatmentType, string> = {
   [TreatmentType.ANIMAL_FEEDING]: '🐄',
 };
 
-const getWasteTypeEmoji = (name: string): string => {
-  const lowerName = name.toLowerCase();
-  if (lowerName.includes('papel') || lowerName.includes('papelão') || lowerName.includes('papelao'))
-    return '📄';
-  if (lowerName.includes('plástico') || lowerName.includes('plastico') || lowerName.includes('pet'))
-    return '♻️';
-  if (
-    lowerName.includes('metal') ||
-    lowerName.includes('alumínio') ||
-    lowerName.includes('aluminio') ||
-    lowerName.includes('lata')
-  )
-    return '🔩';
-  if (lowerName.includes('vidro')) return '🪟';
-  if (
-    lowerName.includes('orgânico') ||
-    lowerName.includes('organico') ||
-    lowerName.includes('compostável') ||
-    lowerName.includes('compostavel')
-  )
-    return '🍃';
-  if (
-    lowerName.includes('eletrônico') ||
-    lowerName.includes('eletronico') ||
-    lowerName.includes('bateria') ||
-    lowerName.includes('pilha')
-  )
-    return '📱';
-  if (lowerName.includes('madeira')) return '🪵';
-  if (
-    lowerName.includes('têxtil') ||
-    lowerName.includes('textil') ||
-    lowerName.includes('tecido') ||
-    lowerName.includes('roupa')
-  )
-    return '👕';
-  if (lowerName.includes('óleo') || lowerName.includes('oleo')) return '🛢️';
-  if (lowerName.includes('perigoso') || lowerName.includes('tóxico') || lowerName.includes('toxico'))
-    return '☢️';
-  return '🗑️';
-};
 
 const COLORS = {
   background: '#f5f5f5',
   surface: '#ffffff',
-  primary: '#4CAF50',
-  primaryLight: '#E8F5E9',
+  primary: '#2B87F5',
+  primaryLight: '#E0F2FE',
   text: '#333333',
   textSecondary: '#666666',
   border: '#ddd',
@@ -219,8 +180,7 @@ export const NewCollectionScreen: React.FC = () => {
     try {
       const result = await ImagePicker.launchCameraAsync({
         mediaTypes: 'images',
-        allowsEditing: true,
-        aspect: [4, 3],
+        allowsEditing: false,
         quality: 0.8,
         exif: true,
       });
@@ -247,8 +207,7 @@ export const NewCollectionScreen: React.FC = () => {
 
       const result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: 'images',
-        allowsEditing: true,
-        aspect: [4, 3],
+        allowsEditing: false,
         quality: 0.8,
         exif: true,
       });
@@ -457,10 +416,10 @@ export const NewCollectionScreen: React.FC = () => {
 
   if (loadingRecipients || (isAdmin && loadingClients)) {
     return (
-      <View style={[styles.loadingContainer, { backgroundColor: COLORS.background }]}>
+      <SafeAreaView style={[styles.loadingContainer, { backgroundColor: COLORS.background }]} edges={['bottom']}>
         <ActivityIndicator size="large" color={COLORS.primary} />
         <Text style={[styles.loadingText, { color: COLORS.text }]}>Carregando...</Text>
-      </View>
+      </SafeAreaView>
     );
   }
 
@@ -470,12 +429,12 @@ export const NewCollectionScreen: React.FC = () => {
   const recipients = recipientsData || [];
 
   return (
-    <ScrollView
-      style={[styles.container, { backgroundColor: COLORS.background }]}
-      contentContainerStyle={styles.contentContainer}
-      accessibilityRole="scrollbar"
-      accessibilityLabel="Formulário de nova coleta"
-    >
+    <SafeAreaView style={[styles.container, { backgroundColor: COLORS.background }]} edges={['bottom']}>
+      <ScrollView
+        contentContainerStyle={styles.contentContainer}
+        accessibilityRole="scrollbar"
+        accessibilityLabel="Formulário de nova coleta"
+      >
       {isAdmin && (
         <View style={styles.section}>
           <Text style={[styles.sectionTitle, { color: COLORS.text }]}>Cliente *</Text>
@@ -559,7 +518,8 @@ export const NewCollectionScreen: React.FC = () => {
             options={wasteTypes.map((wt) => ({
               label: wt.name,
               value: wt.id,
-              emoji: getWasteTypeEmoji(wt.name),
+              icon: getWasteTypeIcon(wt.name),
+              iconColor: COLORS.primary,
             }))}
             value={wasteTypeId}
             onValueChange={(value) => {
@@ -816,7 +776,8 @@ export const NewCollectionScreen: React.FC = () => {
           <Text style={[styles.cancelButtonText, { color: COLORS.text }]}>Cancelar</Text>
         </TouchableOpacity>
       </View>
-    </ScrollView>
+      </ScrollView>
+    </SafeAreaView>
   );
 };
 

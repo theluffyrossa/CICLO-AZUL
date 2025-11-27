@@ -8,6 +8,7 @@ import {
   Alert,
   AccessibilityInfo,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 
@@ -64,12 +65,12 @@ export const ClientProfileScreen: React.FC = () => {
   if (!user) return null;
 
   return (
-    <ScrollView
-      style={styles.container}
-      contentContainerStyle={styles.content}
-      accessible={true}
-      accessibilityLabel="Perfil do cliente"
-    >
+    <SafeAreaView style={styles.container} edges={['bottom']}>
+      <ScrollView
+        contentContainerStyle={styles.content}
+        accessible={true}
+        accessibilityLabel="Perfil do cliente"
+      >
       <Card style={styles.userCard}>
         <View style={styles.avatarContainer}>
           <View style={styles.avatar}>
@@ -144,7 +145,8 @@ export const ClientProfileScreen: React.FC = () => {
       </TouchableOpacity>
 
       <Text style={styles.version}>Versão 1.0.0</Text>
-    </ScrollView>
+      </ScrollView>
+    </SafeAreaView>
   );
 };
 

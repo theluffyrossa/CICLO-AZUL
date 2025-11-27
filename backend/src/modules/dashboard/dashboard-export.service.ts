@@ -8,10 +8,12 @@ import {
   User,
   GravimetricData,
   Recipient,
+  Image,
 } from '@database/models';
 import { ApprovalStatus } from '@shared/types';
 import { DashboardFilters, DashboardData } from './dashboard.types';
 import { DashboardService } from './dashboard.service';
+import { downloadImagesAsBuffers } from '@shared/utils/image-download.util';
 
 type PDFDocumentType = InstanceType<typeof PDFDocument>;
 
@@ -28,6 +30,15 @@ interface CollectionExportData {
   userName: string;
   unitAddress: string;
   unitCity: string;
+  images: Array<{
+    url: string;
+    urlSmall: string | null;
+    description: string | null;
+    capturedAt: Date | null;
+    latitude: number | null;
+    longitude: number | null;
+  }>;
+  imageCount: number;
 }
 
 const TREATMENT_TYPES: Record<string, string> = {
@@ -100,6 +111,11 @@ export class DashboardExportService {
           model: GravimetricData,
           as: 'gravimetricData',
         },
+        {
+          model: Image,
+          as: 'images',
+          attributes: ['url', 'urlSmall', 'description', 'capturedAt', 'latitude', 'longitude'],
+        },
       ],
     });
 
@@ -108,6 +124,15 @@ export class DashboardExportService {
         (sum, data) => sum + Number(data.weightKg),
         0
       ) || 0;
+
+      const images = collection.images?.map((img) => ({
+        url: img.url,
+        urlSmall: img.urlSmall,
+        description: img.description,
+        capturedAt: img.capturedAt,
+        latitude: img.latitude,
+        longitude: img.longitude,
+      })) || [];
 
       return {
         collectionDate: new Date(collection.collectionDate).toLocaleDateString('pt-BR'),
@@ -122,6 +147,8 @@ export class DashboardExportService {
         userName: collection.user?.name || '',
         unitAddress: collection.unit?.address || '',
         unitCity: collection.unit?.city || '',
+        images,
+        imageCount: images.length,
       };
     });
   }
@@ -131,6 +158,11 @@ export class DashboardExportService {
       this.getCollectionsForExport(filters),
       this.dashboardService.getDashboardData(filters),
     ]);
+
+    const allImageUrls = collections.flatMap((c) =>
+      c.images.map((img) => img.urlSmall || img.url).filter(Boolean)
+    );
+    const imageBuffers = await downloadImagesAsBuffers(allImageUrls);
 
     return new Promise((resolve, reject) => {
       const doc = new PDFDocument({
@@ -191,6 +223,12 @@ export class DashboardExportService {
         doc.text(`   Tipo de Resíduo: ${collection.wasteTypeName} | Peso: ${collection.totalWeightKg.toFixed(2)} kg`);
         doc.text(`   Tratamento: ${collection.treatmentType} | Destinatário: ${collection.recipientName}`);
         doc.text(`   Responsável: ${collection.userName}`);
+
+        if (collection.imageCount > 0) {
+          doc.text(`   Imagens: ${collection.imageCount} foto(s)`);
+          this.addCollectionImages(doc, collection, imageBuffers);
+        }
+
         doc.moveDown(0.5);
       });
 
@@ -418,9 +456,19 @@ export class DashboardExportService {
     }
 
     lines.push('DETALHAMENTO DAS COLETAS');
-    lines.push('Data da Coleta,Cliente,Unidade,Cidade,Endereço,Tipo de Resíduo,Peso Total (kg),Tipo de Tratamento,Destinatário,Status,Status de Aprovação,Responsável');
+    lines.push('Data da Coleta,Cliente,Unidade,Cidade,Endereço,Tipo de Resíduo,Peso Total (kg),Tipo de Tratamento,Destinatário,Status,Status de Aprovação,Responsável,Quantidade de Imagens,URLs das Imagens,Localizações GPS');
 
     collections.forEach((c) => {
+      const imageUrls = c.images.map((img) => img.url).join('; ');
+      const imageLocations = c.images
+        .map((img) => {
+          if (img.latitude && img.longitude) {
+            return `${Number(img.latitude).toFixed(6)},${Number(img.longitude).toFixed(6)}`;
+          }
+          return 'N/A';
+        })
+        .join('; ');
+
       const row = [
         c.collectionDate,
         c.clientName,
@@ -434,6 +482,9 @@ export class DashboardExportService {
         c.status,
         c.approvalStatus,
         c.userName,
+        c.imageCount.toString(),
+        imageUrls,
+        imageLocations,
       ].map((field) => `"${field}"`).join(',');
 
       lines.push(row);
@@ -469,5 +520,95 @@ export class DashboardExportService {
       ? new Date(filters.endDate).toLocaleDateString('pt-BR')
       : 'hoje';
     return `${startDate} até ${endDate}`;
+  }
+
+  private addCollectionImages(
+    doc: PDFDocumentType,
+    collection: CollectionExportData,
+    imageBuffers: Map<string, Buffer>
+  ): void {
+    if (collection.images.length === 0) return;
+
+    doc.moveDown(0.3);
+    doc.fontSize(8).font('Helvetica-Bold').text('   Evidências Fotográficas:', { continued: false });
+    doc.moveDown(0.2);
+
+    const imageWidth = 120;
+    const imageHeight = 90;
+    const imagesPerRow = 4;
+    const imageSpacing = 10;
+    const startX = 60;
+    let currentX = startX;
+    let currentY = doc.y;
+    let imageCount = 0;
+
+    collection.images.forEach((image) => {
+      const imageUrl = image.urlSmall || image.url;
+      const buffer = imageBuffers.get(imageUrl);
+
+      if (!buffer) return;
+
+      if (currentY + imageHeight + 40 > 750) {
+        doc.addPage();
+        currentY = 50;
+        currentX = startX;
+        imageCount = 0;
+      }
+
+      if (imageCount > 0 && imageCount % imagesPerRow === 0) {
+        currentY += imageHeight + imageSpacing + 25;
+        currentX = startX;
+      }
+
+      try {
+        doc.image(buffer, currentX, currentY, {
+          fit: [imageWidth, imageHeight],
+          align: 'center',
+          valign: 'center',
+        });
+
+        doc.fontSize(6).font('Helvetica');
+        let captionY = currentY + imageHeight + 2;
+
+        if (image.capturedAt) {
+          const capturedDate = new Date(image.capturedAt).toLocaleDateString('pt-BR', {
+            day: '2-digit',
+            month: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit',
+          });
+          doc.text(capturedDate, currentX, captionY, { width: imageWidth, align: 'center' });
+          captionY += 7;
+        }
+
+        if (image.description) {
+          const descText = image.description.length > 30
+            ? image.description.substring(0, 27) + '...'
+            : image.description;
+          doc.text(descText, currentX, captionY, { width: imageWidth, align: 'center' });
+          captionY += 7;
+        }
+
+        if (image.latitude && image.longitude) {
+          const lat = Number(image.latitude).toFixed(6);
+          const lng = Number(image.longitude).toFixed(6);
+          doc.fontSize(5).text(`📍 ${lat}, ${lng}`, currentX, captionY, { width: imageWidth, align: 'center' });
+        }
+
+        currentX += imageWidth + imageSpacing;
+        imageCount++;
+      } catch (error) {
+        doc.fontSize(6).font('Helvetica').text('[Erro ao carregar imagem]', currentX, currentY, {
+          width: imageWidth,
+          align: 'center',
+        });
+        currentX += imageWidth + imageSpacing;
+        imageCount++;
+      }
+    });
+
+    if (imageCount > 0) {
+      doc.y = currentY + imageHeight + 35;
+    }
   }
 }

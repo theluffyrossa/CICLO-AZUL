@@ -11,6 +11,7 @@ import {
   Platform,
   TextInput,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuthStore } from '../../store/authStore';
 import { clientService } from '../../services/client.service';
 import { recipientService } from '../../services/recipient.service';
@@ -47,7 +48,7 @@ const TREATMENT_TYPE_LABELS: Record<TreatmentType, string> = {
 const COLORS = {
   background: '#f5f5f5',
   surface: '#ffffff',
-  primary: '#4CAF50',
+  primary: '#2B87F5',
   text: '#333333',
   textSecondary: '#666666',
   border: '#ddd',
@@ -238,22 +239,22 @@ export const AddCollectionScreen: React.FC<AddCollectionScreenProps> = ({ naviga
 
   if (loadingData) {
     return (
-      <View style={[styles.loadingContainer, { backgroundColor: COLORS.background }]}>
+      <SafeAreaView style={[styles.loadingContainer, { backgroundColor: COLORS.background }]} edges={['bottom']}>
         <ActivityIndicator size="large" color={COLORS.primary} />
         <Text style={[styles.loadingText, { color: COLORS.text }]}>
           Carregando...
         </Text>
-      </View>
+      </SafeAreaView>
     );
   }
 
   return (
-    <ScrollView
-      style={[styles.container, { backgroundColor: COLORS.background }]}
-      contentContainerStyle={styles.contentContainer}
-      accessibilityRole="scrollbar"
-      accessibilityLabel="Formulário de nova coleta"
-    >
+    <SafeAreaView style={[styles.container, { backgroundColor: COLORS.background }]} edges={['bottom']}>
+      <ScrollView
+        contentContainerStyle={styles.contentContainer}
+        accessibilityRole="scrollbar"
+        accessibilityLabel="Formulário de nova coleta"
+      >
       <View style={styles.section}>
         <Text style={[styles.sectionTitle, { color: COLORS.text }]}>
           Data da Pesagem
@@ -468,7 +469,8 @@ export const AddCollectionScreen: React.FC<AddCollectionScreenProps> = ({ naviga
           </Text>
         </TouchableOpacity>
       </View>
-    </ScrollView>
+      </ScrollView>
+    </SafeAreaView>
   );
 };
 

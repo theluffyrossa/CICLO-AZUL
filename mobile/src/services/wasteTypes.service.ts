@@ -37,6 +37,12 @@ class WasteTypesService {
     return response.data.data;
   }
 
+  async getAll(): Promise<WasteType[]> {
+    const response = await api.get<ApiResponse<WasteType[]>>('/waste-types/active');
+    if (!response.data.data) throw new Error('Invalid response');
+    return response.data.data;
+  }
+
   async getWasteTypeById(id: string): Promise<WasteType> {
     const response = await api.get<ApiResponse<WasteType>>(`/waste-types/${id}`);
     if (!response.data.data) throw new Error('Invalid response');

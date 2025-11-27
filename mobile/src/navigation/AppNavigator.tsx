@@ -16,6 +16,7 @@ import { DashboardScreen } from '@/screens/dashboard/DashboardScreen';
 import { CollectionsListScreen } from '@/screens/collections/CollectionsListScreen';
 import { NewCollectionScreen } from '@/screens/collections/NewCollectionScreen';
 import { CollectionDetailScreen } from '@/screens/collections/CollectionDetailScreen';
+import { EditCollectionScreen } from '@/screens/collections/EditCollectionScreen';
 import { GravimetricDataScreen } from '@/screens/collections/GravimetricDataScreen';
 import { CameraScreen } from '@/screens/collections/CameraScreen';
 import { ProfileScreen } from '@/screens/profile/ProfileScreen';
@@ -170,6 +171,16 @@ export const AppNavigator = (): React.ReactElement => {
               options={{
                 headerShown: true,
                 title: 'Detalhes da Coleta',
+                headerStyle: { backgroundColor: colors.primary[600] },
+                headerTintColor: colors.white,
+              }}
+            />
+            <Stack.Screen
+              name="EditCollection"
+              component={EditCollectionScreen}
+              options={{
+                headerShown: true,
+                title: 'Editar Coleta',
                 headerStyle: { backgroundColor: colors.primary[600] },
                 headerTintColor: colors.white,
               }}

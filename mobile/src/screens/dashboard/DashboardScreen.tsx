@@ -11,7 +11,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { PieChart } from 'react-native-chart-kit';
+import { BarChart } from 'react-native-gifted-charts';
 import { useQuery } from '@tanstack/react-query';
 
 import { Card } from '@/components/common/Card';
@@ -28,6 +28,7 @@ import { colors, spacing, shadows, standardStyles, borderRadius, typography } fr
 import { formatNumber } from '@/utils/numbers';
 import { DatePeriod, getDateRangeForPeriod } from '@/utils/dateRange.util';
 import { translateTreatmentType, cleanWasteTypeName } from '@/utils/translations.util';
+import { getWasteTypeIcon } from '@/utils/wasteTypeIcons.util';
 
 const fetchDashboard = async (filters?: DashboardFilters): Promise<DashboardData> => {
   const params = new URLSearchParams();
@@ -132,37 +133,45 @@ export const DashboardScreen = (): React.JSX.Element => {
     return <Loading message="Carregando dashboard..." />;
   }
 
+  const wasteTypeColors = [
+    '#FF6B6B',
+    '#4ECDC4',
+    '#FFD93D',
+    '#38BDF8',
+    '#A78BFA',
+    '#FB7185',
+    '#2B87F5',
+    '#FBBF24',
+  ];
+
+  const treatmentTypeColors = [
+    '#0EA5E9',
+    '#F59E0B',
+    '#EF4444',
+    '#8B5CF6',
+  ];
+
+  const getWasteTypeColor = (index: number): string => {
+    return wasteTypeColors[index % wasteTypeColors.length];
+  };
+
+  const getTreatmentTypeColor = (index: number): string => {
+    return treatmentTypeColors[index % treatmentTypeColors.length];
+  };
+
   const chartData = data?.wasteTypeDistribution.slice(0, 5).map((item, index) => {
-    const cleanName = cleanWasteTypeName(item.wasteTypeName);
     return {
-      name: `kg ${cleanName}`,
-      population: item.totalWeightKg,
-      color: [
-        '#FF6B6B',
-        '#4ECDC4',
-        '#FFE66D',
-        '#95E1D3',
-        '#F38181',
-      ][index],
-      legendFontColor: colors.text.primary,
-      legendFontSize: 10,
+      value: item.totalWeightKg,
+      label: '',
+      frontColor: getWasteTypeColor(index),
     };
   }) || [];
 
   const treatmentChartData = data?.treatmentTypeDistribution.map((item, index) => {
-    const translatedName = translateTreatmentType(item.treatmentType as TreatmentType);
-    const cleanName = cleanWasteTypeName(translatedName);
     return {
-      name: `kg ${cleanName}`,
-      population: item.totalWeightKg,
-      color: [
-        '#A8E6CF',
-        '#FFD3B6',
-        '#FFAAA5',
-        '#FF8B94',
-      ][index] || '#A8E6CF',
-      legendFontColor: colors.text.primary,
-      legendFontSize: 12,
+      value: item.totalWeightKg,
+      label: '',
+      frontColor: getTreatmentTypeColor(index),
     };
   }) || [];
 
@@ -320,129 +329,132 @@ export const DashboardScreen = (): React.JSX.Element => {
 
         {chartData.length > 0 && (
           <>
-            <Text
-              style={styles.sectionTitle}
-              accessible={true}
-              accessibilityRole="header"
-            >
-              Distribuição por Tipo de Resíduo
-            </Text>
-
             <Card
               accessible={true}
-              accessibilityLabel="Gráfico de pizza mostrando distribuição de resíduos por tipo"
+              accessibilityLabel="Gráfico de barras mostrando distribuição de resíduos por tipo"
               accessibilityHint="Role para ver a lista detalhada abaixo"
             >
               <View style={styles.chartTitleContainer}>
                 <Ionicons name="pie-chart" size={20} color={colors.primary[600]} />
-                <Text style={styles.chartTitle}>Tipos de Resíduo</Text>
+                <Text style={styles.chartTitle}>Distribuição por Tipo de Resíduo</Text>
               </View>
-              <PieChart
-                data={chartData}
-                width={Dimensions.get('window').width - 64}
-                height={220}
-                chartConfig={{
-                  color: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
-                }}
-                accessor="population"
-                backgroundColor="transparent"
-                paddingLeft="15"
-                absolute
-              />
-            </Card>
 
-            <View
-              accessible={true}
-              accessibilityRole="list"
-              accessibilityLabel={`Lista de ${data?.wasteTypeDistribution.length} tipos de resíduos`}
-            >
+              <View style={styles.chartContainerLeft}>
+                <BarChart
+                  data={chartData}
+                  width={Dimensions.get('window').width - 80}
+                  height={Math.max(chartData.length * 60, 100)}
+                  barWidth={28}
+                  spacing={24}
+                  hideRules
+                  horizontal
+                  showYAxisIndices={false}
+                  hideYAxisText
+                  xAxisThickness={1}
+                  xAxisColor={colors.border.light}
+                  yAxisThickness={0}
+                  isAnimated
+                  animationDuration={800}
+                  barBorderRadius={4}
+                />
+              </View>
+
+              <Text style={[styles.listTitle, { marginTop: spacing['4'] }]}>
+                Detalhes por Tipo de Resíduo
+              </Text>
+
               {data?.wasteTypeDistribution.map((item, index) => (
-                <Card
+                <View
                   key={item.wasteTypeId}
-                  style={styles.wasteCard}
+                  style={styles.wasteTypeItem}
                   accessible={true}
-                  accessibilityRole="text"
-                  accessibilityLabel={`${item.wasteTypeName}: ${formatNumber(item.totalWeightKg, 2)} quilogramas, ${item.count} coletas, ${formatNumber(item.percentage, 1)} porcento do total`}
+                  accessibilityLabel={`${cleanWasteTypeName(item.wasteTypeName)}: ${formatNumber(item.totalWeightKg, 2)} quilogramas, ${formatNumber(item.percentage, 1)} porcento do total, ${item.count} coletas`}
                 >
-                  <View style={styles.wasteInfo}>
-                    <Text style={styles.wasteName}>{item.wasteTypeName}</Text>
-                    <Text style={styles.wasteCategory}>{item.category}</Text>
+                  <View style={styles.wasteTypeHeader}>
+                    <View style={styles.wasteTypeNameContainer}>
+                      <View style={styles.wasteTypeNameRow}>
+                        <View style={[styles.iconContainer, { backgroundColor: getWasteTypeColor(index) + '15' }]}>
+                          <Ionicons
+                            name={getWasteTypeIcon(item.wasteTypeName)}
+                            size={22}
+                            color={getWasteTypeColor(index)}
+                          />
+                        </View>
+                        <Text style={styles.wasteName}>
+                          {cleanWasteTypeName(item.wasteTypeName)}
+                        </Text>
+                      </View>
+                      <Text style={styles.wasteCategory}>{item.category}</Text>
+                    </View>
+                    <View style={styles.wasteStats}>
+                      <Text style={[styles.wasteWeight, { color: getWasteTypeColor(index) }]}>
+                        {formatNumber(item.totalWeightKg, 1)} kg
+                      </Text>
+                      <Text style={styles.wasteCount}>{item.count} coletas</Text>
+                    </View>
                   </View>
-                  <View style={styles.wasteStats}>
-                    <Text style={styles.wasteWeight}>
-                      {formatNumber(item.totalWeightKg, 2)}kg
-                    </Text>
-                    <Text style={styles.wasteCount}>{item.count} coletas</Text>
-                    <Text style={styles.wastePercent}>
-                      {formatNumber(item.percentage, 1)}%
-                    </Text>
-                  </View>
-                </Card>
+                </View>
               ))}
-            </View>
+            </Card>
           </>
         )}
 
         {treatmentChartData.length > 0 && (
           <>
-            <Text
-              style={[styles.sectionTitle, { marginTop: spacing['6'] }]}
-              accessible={true}
-              accessibilityRole="header"
-            >
-              Distribuição por Tipo de Tratamento
-            </Text>
-
             <Card
+              style={{ marginTop: spacing['6'] }}
               accessible={true}
-              accessibilityLabel="Gráfico de pizza mostrando distribuição por tipo de tratamento"
+              accessibilityLabel="Gráfico de barras mostrando distribuição por tipo de tratamento"
               accessibilityHint="Role para ver a lista detalhada abaixo"
             >
               <View style={styles.chartTitleContainer}>
                 <Ionicons name="analytics" size={20} color={colors.secondary[600]} />
-                <Text style={styles.chartTitle}>Tipos de Tratamento</Text>
+                <Text style={styles.chartTitle}>Distribuição por Tipo de Tratamento</Text>
               </View>
-              <PieChart
-                data={treatmentChartData}
-                width={Dimensions.get('window').width - 64}
-                height={220}
-                chartConfig={{
-                  color: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
-                }}
-                accessor="population"
-                backgroundColor="transparent"
-                paddingLeft="15"
-                absolute
-              />
-            </Card>
 
-            <View
-              accessible={true}
-              accessibilityRole="list"
-              accessibilityLabel={`Lista de ${data?.treatmentTypeDistribution.length} tipos de tratamento`}
-            >
+              <View style={styles.chartContainerLeft}>
+                <BarChart
+                  data={treatmentChartData}
+                  width={Dimensions.get('window').width - 80}
+                  height={Math.max(treatmentChartData.length * 60, 100)}
+                  barWidth={32}
+                  spacing={32}
+                  hideRules
+                  horizontal
+                  showYAxisIndices={false}
+                  hideYAxisText
+                  xAxisThickness={1}
+                  xAxisColor={colors.border.light}
+                  yAxisThickness={0}
+                  isAnimated
+                  animationDuration={800}
+                  barBorderRadius={4}
+                />
+              </View>
+
+              <Text style={[styles.listTitle, { marginTop: spacing['4'] }]}>
+                Detalhes por Tipo de Tratamento
+              </Text>
+
               {data?.treatmentTypeDistribution.map((item, index) => (
-                <Card
+                <View
                   key={item.treatmentType}
-                  style={styles.wasteCard}
+                  style={styles.treatmentItem}
                   accessible={true}
-                  accessibilityRole="text"
-                  accessibilityLabel={`${translateTreatmentType(item.treatmentType as TreatmentType)}: ${formatNumber(item.totalWeightKg, 2)} quilogramas, ${item.count} coletas, ${formatNumber(item.percentage, 1)} porcento do total`}
+                  accessibilityLabel={`${translateTreatmentType(item.treatmentType as TreatmentType)}: ${formatNumber(item.totalWeightKg, 2)} quilogramas, ${formatNumber(item.percentage, 1)} porcento do total, ${item.count} coletas`}
                 >
-                  <View style={styles.wasteInfo}>
-                    <Text style={styles.wasteName}>
-                      {translateTreatmentType(item.treatmentType as TreatmentType)}
-                    </Text>
+                  <View style={styles.treatmentHeader}>
+                    <View style={styles.treatmentNameRow}>
+                      <View style={[styles.colorIndicator, { backgroundColor: getTreatmentTypeColor(index) }]} />
+                      <Text style={styles.treatmentName}>
+                        {translateTreatmentType(item.treatmentType as TreatmentType)}
+                      </Text>
+                    </View>
                     <View
                       style={[
                         styles.treatmentBadge,
                         {
-                          backgroundColor: [
-                            colors.primary[100],
-                            colors.secondary[100],
-                            colors.primary[200],
-                            colors.secondary[200],
-                          ][index] || colors.primary[100],
+                          backgroundColor: getTreatmentTypeColor(index) + '20',
                         },
                       ]}
                     >
@@ -450,12 +462,7 @@ export const DashboardScreen = (): React.JSX.Element => {
                         style={[
                           styles.treatmentBadgeText,
                           {
-                            color: [
-                              colors.primary[700],
-                              colors.secondary[700],
-                              colors.primary[800],
-                              colors.secondary[800],
-                            ][index] || colors.primary[600],
+                            color: getTreatmentTypeColor(index),
                           },
                         ]}
                       >
@@ -463,17 +470,17 @@ export const DashboardScreen = (): React.JSX.Element => {
                       </Text>
                     </View>
                   </View>
-                  <View style={styles.wasteStats}>
-                    <Text style={styles.wasteWeight}>
-                      {formatNumber(item.totalWeightKg, 2)}kg
+                  <View style={styles.treatmentStats}>
+                    <Text style={[styles.treatmentWeight, { color: getTreatmentTypeColor(index) }]}>
+                      {formatNumber(item.totalWeightKg, 1)} kg
                     </Text>
-                    <Text style={styles.wastePercent}>
+                    <Text style={styles.treatmentPercentage}>
                       {formatNumber(item.percentage, 1)}%
                     </Text>
                   </View>
-                </Card>
+                </View>
               ))}
-            </View>
+            </Card>
           </>
         )}
       </ScrollView>
@@ -653,5 +660,89 @@ const styles = StyleSheet.create({
   },
   exportButton: {
     flex: 1,
+  },
+  chartContainerLeft: {
+    alignItems: 'flex-start',
+    justifyContent: 'flex-start',
+    marginVertical: spacing['2'],
+    marginLeft: -60,
+  },
+  listTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: colors.text.primary,
+    marginBottom: spacing['4'],
+  },
+  wasteTypeItem: {
+    marginBottom: spacing['4'],
+    paddingBottom: spacing['3'],
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border.light,
+  },
+  wasteTypeHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+  },
+  wasteTypeNameContainer: {
+    flex: 1,
+    paddingRight: spacing['3'],
+  },
+  wasteTypeNameRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing['2'],
+    marginBottom: spacing['1'],
+  },
+  colorIndicator: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+  },
+  iconContainer: {
+    width: 40,
+    height: 40,
+    borderRadius: 8,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  treatmentItem: {
+    marginBottom: spacing['4'],
+    paddingBottom: spacing['4'],
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border.light,
+  },
+  treatmentHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: spacing['3'],
+  },
+  treatmentNameRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing['2'],
+    flex: 1,
+    paddingRight: spacing['3'],
+  },
+  treatmentName: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: colors.text.primary,
+  },
+  treatmentStats: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  treatmentWeight: {
+    fontSize: 17,
+    fontWeight: '700',
+    color: colors.secondary[600],
+  },
+  treatmentPercentage: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: colors.text.secondary,
   },
 });

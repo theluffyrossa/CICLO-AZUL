@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { View, ScrollView, StyleSheet, KeyboardAvoidingView, Platform, AccessibilityInfo } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { useMutation } from '@tanstack/react-query';
 
@@ -39,11 +40,12 @@ export const EditProfileScreen: React.FC = () => {
   };
 
   return (
-    <KeyboardAvoidingView
-      style={styles.container}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-    >
-      <ScrollView style={styles.scrollView} contentContainerStyle={styles.content}>
+    <SafeAreaView style={styles.container} edges={['bottom']}>
+      <KeyboardAvoidingView
+        style={styles.container}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      >
+        <ScrollView style={styles.scrollView} contentContainerStyle={styles.content}>
         <TextInput
           label="Nome"
           value={name}
@@ -77,10 +79,11 @@ export const EditProfileScreen: React.FC = () => {
           <View style={styles.buttonSpacer} />
           <Button title="Salvar" variant="primary" onPress={handleSave} fullWidth />
         </View>
-      </ScrollView>
+        </ScrollView>
 
-      {toast && <Toast message={toast.message} type={toast.type} onHide={() => setToast(null)} />}
-    </KeyboardAvoidingView>
+        {toast && <Toast message={toast.message} type={toast.type} onHide={() => setToast(null)} />}
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 };
 
