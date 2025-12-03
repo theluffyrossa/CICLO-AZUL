@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "nodemon",
     "build": "tsc && tsc-alias",
-    "start": "npm run seed:safe && npm run add:electronic-waste:prod && node dist/server.js",
+    "start": "npm run add:bacuri-updates:prod && npm run seed:safe && node dist/server.js",
     "seed:safe": "node dist/database/seed.js || true",
     "migrate": "ts-node -r tsconfig-paths/register src/database/migrate.ts",
     "migrate:prod": "node dist/database/migrate.js",
@@ -16,7 +16,7 @@
     "add:electronic-waste": "ts-node -r tsconfig-paths/register src/database/scripts/add-electronic-waste-types.ts",
     "add:electronic-waste:prod": "node dist/database/scripts/add-electronic-waste-types.js || true",
     "add:bacuri-updates": "ts-node -r tsconfig-paths/register src/database/scripts/add-bacuri-updates.ts",
-    "add:bacuri-updates:prod": "node dist/database/scripts/add-bacuri-updates.js",
+    "add:bacuri-updates:prod": "node dist/database/scripts/add-bacuri-updates.js || true",
     "diagnose": "ts-node -r tsconfig-paths/register src/database/scripts/diagnose-data.ts",
     "migrate:images": "ts-node -r tsconfig-paths/register src/database/scripts/migrate-images-to-s3.ts",
     "update:image-urls": "ts-node -r tsconfig-paths/register src/database/scripts/update-image-urls.ts",

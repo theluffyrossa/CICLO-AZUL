@@ -20,6 +20,42 @@ const addBacuriUpdates = async (): Promise<void> => {
 
     logger.info(`Found Bacuri client: ${bacuriClient.id}`);
 
+    const plasticoMole = await WasteType.findOne({
+      where: { name: 'Plástico Mole' },
+    });
+
+    const plasticoDuro = await WasteType.findOne({
+      where: { name: 'Plástico Duro' },
+    });
+
+    if (plasticoMole) {
+      const deleted = await ClientWasteType.destroy({
+        where: {
+          clientId: bacuriClient.id,
+          wasteTypeId: plasticoMole.id,
+        },
+      });
+      if (deleted > 0) {
+        logger.info('✅ Removed Plástico Mole association from Bacuri');
+      } else {
+        logger.info('⚠️ Plástico Mole was not associated to Bacuri');
+      }
+    }
+
+    if (plasticoDuro) {
+      const deleted = await ClientWasteType.destroy({
+        where: {
+          clientId: bacuriClient.id,
+          wasteTypeId: plasticoDuro.id,
+        },
+      });
+      if (deleted > 0) {
+        logger.info('✅ Removed Plástico Duro association from Bacuri');
+      } else {
+        logger.info('⚠️ Plástico Duro was not associated to Bacuri');
+      }
+    }
+
     const existingPlasticos = await WasteType.findOne({
       where: { name: 'Plásticos' },
     });
