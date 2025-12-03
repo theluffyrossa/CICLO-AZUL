@@ -40,7 +40,7 @@ export const Button: React.FC<ButtonProps> = ({
         styles[`${size}Button`],
         fullWidth && styles.fullWidth,
         isDisabled && styles.disabledButton,
-        !isDisabled && shadows.sm,
+        !isDisabled && variant !== 'outline' && shadows.sm,
       ]}
       onPress={onPress}
       disabled={isDisabled}
