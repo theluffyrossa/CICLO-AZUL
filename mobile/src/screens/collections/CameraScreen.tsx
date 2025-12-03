@@ -171,9 +171,9 @@ export const CameraScreen: React.FC = () => {
         'Consentimento LGPD',
         'Para fazer upload desta imagem, precisamos do seu consentimento para:\n\n' +
           '• Armazenar a foto no servidor\n' +
-          '• Coletar localização (GPS)\n' +
+          '• Capturar localização (GPS)\n' +
           '• Armazenar metadados do dispositivo\n\n' +
-          'Os dados serão usados apenas para fins de registro da coleta e conforme a LGPD.',
+          'Os dados serão usados apenas para fins de registro da pesagem e conforme a LGPD.',
         [
           {
             text: 'Não Autorizo',
@@ -299,7 +299,7 @@ export const CameraScreen: React.FC = () => {
           <StageSelector
             value={imageStage}
             onChange={setImageStage}
-            accessibilityLabel="Etapa da coleta"
+            accessibilityLabel="Etapa da pesagem"
           />
 
           {lgpdConsent && (

@@ -213,11 +213,11 @@ export const AddCollectionScreen: React.FC<AddCollectionScreenProps> = ({ naviga
 
       const collection = await clientService.createCollection(collectionData);
 
-      AccessibilityInfo.announceForAccessibility('Coleta criada com sucesso');
+      AccessibilityInfo.announceForAccessibility('Pesagem criada com sucesso');
 
       Alert.alert(
         'Sucesso',
-        'Coleta registrada com sucesso! Agora você pode adicionar a pesagem e fotos.',
+        'Pesagem registrada com sucesso!',
         [
           {
             text: 'OK',
@@ -229,7 +229,7 @@ export const AddCollectionScreen: React.FC<AddCollectionScreenProps> = ({ naviga
       );
     } catch (error: unknown) {
       console.error('Error creating collection:', error);
-      const errorMessage = (error as { message?: string })?.message || 'Erro ao criar coleta';
+      const errorMessage = (error as { message?: string })?.message || 'Erro ao criar pesagem';
       Alert.alert('Erro', errorMessage);
       AccessibilityInfo.announceForAccessibility(`Erro: ${errorMessage}`);
     } finally {
@@ -253,7 +253,7 @@ export const AddCollectionScreen: React.FC<AddCollectionScreenProps> = ({ naviga
       <ScrollView
         contentContainerStyle={styles.contentContainer}
         accessibilityRole="scrollbar"
-        accessibilityLabel="Formulário de nova coleta"
+        accessibilityLabel="Formulário de nova pesagem"
       >
       <View style={styles.section}>
         <Text style={[styles.sectionTitle, { color: COLORS.text }]}>
@@ -428,7 +428,7 @@ export const AddCollectionScreen: React.FC<AddCollectionScreenProps> = ({ naviga
           style={[styles.textArea, { backgroundColor: COLORS.surface, borderColor: COLORS.border, color: COLORS.text }]}
           value={notes}
           onChangeText={setNotes}
-          placeholder="Digite observações sobre a coleta"
+          placeholder="Digite observações sobre a pesagem"
           placeholderTextColor={COLORS.textSecondary}
           multiline
           numberOfLines={4}
@@ -446,13 +446,13 @@ export const AddCollectionScreen: React.FC<AddCollectionScreenProps> = ({ naviga
           onPress={handleSubmit}
           disabled={loading}
           accessibilityRole="button"
-          accessibilityLabel="Salvar coleta"
+          accessibilityLabel="Salvar pesagem"
           accessibilityState={{ disabled: loading }}
         >
           {loading ? (
             <ActivityIndicator color={COLORS.background} />
           ) : (
-            <Text style={styles.submitButtonText}>Salvar Coleta</Text>
+            <Text style={styles.submitButtonText}>Salvar Pesagem</Text>
           )}
         </TouchableOpacity>
 

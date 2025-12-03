@@ -60,8 +60,7 @@ const seedClientWasteTypes = async (): Promise<void> => {
       'Alimentação Animal',
       'Rejeito',
       'Pet Óleo',
-      'Plástico Mole', // Plástico
-      'Plástico Duro', // Plástico
+      'Plásticos',
       'Alumínio',
       'Vidro',
       'Papelão',
@@ -72,7 +71,7 @@ const seedClientWasteTypes = async (): Promise<void> => {
       'Caixotes',
       'Isopor',
       'Metais em Geral',
-      'Latas de Alumínio', // Alumínio
+      'Latas de Alumínio',
     ];
 
     // Criar associações para Parque

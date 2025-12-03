@@ -74,7 +74,7 @@ export const CollectionDetailScreen: React.FC = () => {
 
     Alert.alert(
       'Confirmar Exclusão',
-      'Tem certeza que deseja excluir esta coleta? Esta ação não pode ser desfeita.',
+      'Tem certeza que deseja excluir esta pesagem? Esta ação não pode ser desfeita.',
       [
         {
           text: 'Cancelar',
@@ -87,7 +87,7 @@ export const CollectionDetailScreen: React.FC = () => {
             try {
               await collectionsService.deleteCollection(collection.id);
               queryClient.invalidateQueries({ queryKey: ['collections'] });
-              Alert.alert('Sucesso', 'Coleta excluída com sucesso!', [
+              Alert.alert('Sucesso', 'Pesagem excluída com sucesso!', [
                 {
                   text: 'OK',
                   onPress: () => navigation.goBack(),
@@ -95,7 +95,7 @@ export const CollectionDetailScreen: React.FC = () => {
               ]);
             } catch (error) {
               console.error('Error deleting collection:', error);
-              const errorMessage = (error as { message?: string })?.message || 'Erro ao excluir coleta';
+              const errorMessage = (error as { message?: string })?.message || 'Erro ao excluir pesagem';
               Alert.alert('Erro', errorMessage);
             }
           },
@@ -120,7 +120,7 @@ export const CollectionDetailScreen: React.FC = () => {
       <SafeAreaView style={styles.errorContainer} edges={['bottom']}>
         <Ionicons name="alert-circle-outline" size={64} color="#f44336" />
         <Text style={[styles.errorText, { fontSize: 16 * fontMultiplier }]}>
-          Erro ao carregar detalhes da coleta
+          Erro ao carregar detalhes da pesagem
         </Text>
       </SafeAreaView>
     );
@@ -130,7 +130,7 @@ export const CollectionDetailScreen: React.FC = () => {
 
   return (
     <SafeAreaView style={styles.container} edges={['bottom']}>
-      <ScrollView accessible={true} accessibilityLabel="Detalhes da coleta">
+      <ScrollView accessible={true} accessibilityLabel="Detalhes da pesagem">
       <View style={styles.headerCard}>
         <Text style={[styles.wasteTypeName, { fontSize: 16 * fontMultiplier * 1.3 }]}>
           {cleanWasteTypeName(collection.wasteType?.name)}
@@ -144,14 +144,14 @@ export const CollectionDetailScreen: React.FC = () => {
 
       <View style={styles.section}>
         <Text style={[styles.sectionTitle, { fontSize: 16 * fontMultiplier * 1.1 }]}>
-          Informações da Coleta
+          Informações da Pesagem
         </Text>
 
         <View style={styles.infoRow}>
           <Ionicons name="calendar-outline" size={20} color="#2B87F5" />
           <View style={styles.infoContent}>
             <Text style={[styles.infoLabel, { fontSize: 16 * fontMultiplier * 0.9 }]}>
-              Data da Coleta
+              Data da Pesagem
             </Text>
             <Text style={[styles.infoValue, { fontSize: 16 * fontMultiplier }]}>
               {formatDate(collection.collectionDate)}
@@ -175,7 +175,7 @@ export const CollectionDetailScreen: React.FC = () => {
           <Ionicons name="location-outline" size={20} color="#2B87F5" />
           <View style={styles.infoContent}>
             <Text style={[styles.infoLabel, { fontSize: 16 * fontMultiplier * 0.9 }]}>
-              Local de Coleta
+              Local de Pesagem
             </Text>
             <Text style={[styles.infoValue, { fontSize: 16 * fontMultiplier }]}>
               {collection.unit?.name}
@@ -314,7 +314,7 @@ export const CollectionDetailScreen: React.FC = () => {
               {totalWeight.toFixed(1)}
             </Text>
             <Text style={[styles.weightLabel, { fontSize: 16 * fontMultiplier }]}>
-              kg coletados
+              kg pesados
             </Text>
           </View>
 
@@ -339,7 +339,7 @@ export const CollectionDetailScreen: React.FC = () => {
       {images && images.length > 0 && (
         <View style={styles.section}>
           <Text style={[styles.sectionTitle, { fontSize: 16 * fontMultiplier * 1.1 }]}>
-            Fotos da Coleta ({images.length})
+            Fotos da Pesagem ({images.length})
           </Text>
 
           <View style={styles.imagesGrid}>
@@ -348,7 +348,7 @@ export const CollectionDetailScreen: React.FC = () => {
                 key={img.id}
                 imageUrl={getImageUrl(img.url)}
                 consentGiven={img.consentGiven}
-                accessibilityLabel={`Foto da coleta, ${img.description || 'sem descrição'}`}
+                accessibilityLabel={`Foto da pesagem, ${img.description || 'sem descrição'}`}
               />
             ))}
           </View>
@@ -372,11 +372,11 @@ export const CollectionDetailScreen: React.FC = () => {
             style={styles.editButton}
             onPress={handleEdit}
             accessibilityRole="button"
-            accessibilityLabel="Editar coleta"
+            accessibilityLabel="Editar pesagem"
           >
             <Ionicons name="create-outline" size={20} color="#fff" />
             <Text style={[styles.editButtonText, { fontSize: 16 * fontMultiplier }]}>
-              Editar Coleta
+              Editar Pesagem
             </Text>
           </TouchableOpacity>
 
@@ -384,11 +384,11 @@ export const CollectionDetailScreen: React.FC = () => {
             style={styles.deleteButton}
             onPress={handleDelete}
             accessibilityRole="button"
-            accessibilityLabel="Excluir coleta"
+            accessibilityLabel="Excluir pesagem"
           >
             <Ionicons name="trash-outline" size={20} color="#fff" />
             <Text style={[styles.deleteButtonText, { fontSize: 16 * fontMultiplier }]}>
-              Excluir Coleta
+              Excluir Pesagem
             </Text>
           </TouchableOpacity>
         </View>

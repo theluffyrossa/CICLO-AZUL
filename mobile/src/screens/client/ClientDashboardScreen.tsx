@@ -138,7 +138,7 @@ export const ClientDashboardScreen: React.FC = () => {
           Meu Painel
         </Text>
         <Text style={[styles.subtitle, { fontSize: 16 * fontMultiplier }]}>
-          Acompanhe suas coletas e estatísticas
+          Acompanhe suas pesagens e estatísticas
         </Text>
       </View>
 
@@ -154,28 +154,28 @@ export const ClientDashboardScreen: React.FC = () => {
         <View
           style={styles.card}
           accessible={true}
-          accessibilityLabel={`Total de coletas: ${summary.totalCollections}`}
+          accessibilityLabel={`Total de pesagens: ${summary.totalCollections}`}
         >
           <Ionicons name="cube-outline" size={32} color={colors.primary[600]} />
           <Text style={[styles.cardValue, { fontSize: 16 * fontMultiplier * 1.8 }]}>
             {summary.totalCollections}
           </Text>
           <Text style={[styles.cardLabel, { fontSize: 16 * fontMultiplier }]}>
-            Total de Coletas
+            Total de Pesagens
           </Text>
         </View>
 
         <View
           style={styles.card}
           accessible={true}
-          accessibilityLabel={`Peso total coletado: ${parseFloat(String(summary.totalWeightKg)).toFixed(2)} kg`}
+          accessibilityLabel={`Peso total pesado: ${parseFloat(String(summary.totalWeightKg)).toFixed(2)} kg`}
         >
           <Ionicons name="scale-outline" size={32} color={colors.secondary[600]} />
           <Text style={[styles.cardValue, { fontSize: 16 * fontMultiplier * 1.8 }]}>
             {parseFloat(String(summary.totalWeightKg)).toFixed(1)}
           </Text>
           <Text style={[styles.cardLabel, { fontSize: 16 * fontMultiplier }]}>
-            kg Coletados
+            kg Pesados
           </Text>
         </View>
       </View>
@@ -219,7 +219,7 @@ export const ClientDashboardScreen: React.FC = () => {
                 key={index}
                 style={styles.wasteTypeItem}
                 accessible={true}
-                accessibilityLabel={`${item.wasteTypeName}: ${parseFloat(String(item.totalWeightKg)).toFixed(2)} kg, ${parseFloat(String(item.percentage)).toFixed(1)}% do total, ${item.count} coletas`}
+                accessibilityLabel={`${item.wasteTypeName}: ${parseFloat(String(item.totalWeightKg)).toFixed(2)} kg, ${parseFloat(String(item.percentage)).toFixed(1)}% do total, ${item.count} pesagens`}
               >
                 <View style={styles.wasteTypeHeader}>
                   <View style={styles.wasteTypeNameContainer}>
@@ -244,7 +244,7 @@ export const ClientDashboardScreen: React.FC = () => {
                       {parseFloat(String(item.totalWeightKg)).toFixed(1)} kg
                     </Text>
                     <Text style={[styles.wasteTypeCount, { fontSize: 12 * fontMultiplier }]}>
-                      {item.count} coletas
+                      {item.count} pesagens
                     </Text>
                   </View>
                 </View>
@@ -293,7 +293,7 @@ export const ClientDashboardScreen: React.FC = () => {
                 key={index}
                 style={styles.treatmentItem}
                 accessible={true}
-                accessibilityLabel={`${translateTreatmentType(item.treatmentType as TreatmentType)}: ${parseFloat(String(item.totalWeightKg)).toFixed(2)} kg, ${parseFloat(String(item.percentage)).toFixed(1)}% do total, ${item.count} coletas`}
+                accessibilityLabel={`${translateTreatmentType(item.treatmentType as TreatmentType)}: ${parseFloat(String(item.totalWeightKg)).toFixed(2)} kg, ${parseFloat(String(item.percentage)).toFixed(1)}% do total, ${item.count} pesagens`}
               >
                 <View style={styles.treatmentHeader}>
                   <View style={styles.treatmentNameRow}>
@@ -319,7 +319,7 @@ export const ClientDashboardScreen: React.FC = () => {
                         },
                       ]}
                     >
-                      {item.count} coletas
+                      {item.count} pesagens
                     </Text>
                   </View>
                 </View>
@@ -341,7 +341,7 @@ export const ClientDashboardScreen: React.FC = () => {
         <View style={[styles.section, styles.emptyState]}>
           <Ionicons name="leaf-outline" size={48} color="#ccc" />
           <Text style={[styles.emptyText, { fontSize: 16 * fontMultiplier }]}>
-            Nenhuma coleta registrada ainda
+            Nenhuma pesagem registrada ainda
           </Text>
         </View>
       )}

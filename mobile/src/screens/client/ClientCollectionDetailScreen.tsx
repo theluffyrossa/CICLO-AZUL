@@ -51,7 +51,7 @@ export const ClientCollectionDetailScreen: React.FC = () => {
       <SafeAreaView style={styles.errorContainer} edges={['bottom']}>
         <Ionicons name="alert-circle-outline" size={64} color="#f44336" />
         <Text style={[styles.errorText, { fontSize: 16 * fontMultiplier }]}>
-          Erro ao carregar detalhes da coleta
+          Erro ao carregar detalhes da pesagem
         </Text>
       </SafeAreaView>
     );
@@ -64,7 +64,7 @@ export const ClientCollectionDetailScreen: React.FC = () => {
 
   return (
     <SafeAreaView style={styles.container} edges={['bottom']}>
-      <ScrollView accessible={true} accessibilityLabel="Detalhes da coleta">
+      <ScrollView accessible={true} accessibilityLabel="Detalhes da pesagem">
       {/* Header Card */}
       <View style={styles.headerCard}>
         <Text style={[styles.wasteTypeName, { fontSize: 16 * fontMultiplier * 1.3 }]}>
@@ -80,14 +80,14 @@ export const ClientCollectionDetailScreen: React.FC = () => {
       {/* Collection Info */}
       <View style={styles.section}>
         <Text style={[styles.sectionTitle, { fontSize: 16 * fontMultiplier * 1.1 }]}>
-          Informações da Coleta
+          Informações da Pesagem
         </Text>
 
         <View style={styles.infoRow}>
           <Ionicons name="calendar-outline" size={20} color="#2B87F5" />
           <View style={styles.infoContent}>
             <Text style={[styles.infoLabel, { fontSize: 16 * fontMultiplier * 0.9 }]}>
-              Data da Coleta
+              Data da Pesagem
             </Text>
             <Text style={[styles.infoValue, { fontSize: 16 * fontMultiplier }]}>
               {formatDate(collection.collectionDate)}
@@ -99,7 +99,7 @@ export const ClientCollectionDetailScreen: React.FC = () => {
           <Ionicons name="location-outline" size={20} color="#2B87F5" />
           <View style={styles.infoContent}>
             <Text style={[styles.infoLabel, { fontSize: 16 * fontMultiplier * 0.9 }]}>
-              Local de Coleta
+              Local de Pesagem
             </Text>
             <Text style={[styles.infoValue, { fontSize: 16 * fontMultiplier }]}>
               {collection.unit?.name}
@@ -236,7 +236,7 @@ export const ClientCollectionDetailScreen: React.FC = () => {
               {totalWeight.toFixed(1)}
             </Text>
             <Text style={[styles.weightLabel, { fontSize: 16 * fontMultiplier }]}>
-              kg coletados
+              kg pesados
             </Text>
           </View>
 
@@ -262,7 +262,7 @@ export const ClientCollectionDetailScreen: React.FC = () => {
       {collection.images && collection.images.length > 0 && (
         <View style={styles.section}>
           <Text style={[styles.sectionTitle, { fontSize: 16 * fontMultiplier * 1.1 }]}>
-            Fotos da Coleta ({collection.images.length})
+            Fotos da Pesagem ({collection.images.length})
           </Text>
 
           <View style={styles.imagesGrid}>
@@ -271,7 +271,7 @@ export const ClientCollectionDetailScreen: React.FC = () => {
                 key={img.id}
                 imageUrl={getImageUrl(img.url)}
                 consentGiven={img.consentGiven}
-                accessibilityLabel={`Foto da coleta, ${img.description || 'sem descrição'}`}
+                accessibilityLabel={`Foto da pesagem, ${img.description || 'sem descrição'}`}
               />
             ))}
           </View>

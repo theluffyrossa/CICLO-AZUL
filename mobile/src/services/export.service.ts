@@ -59,12 +59,12 @@ const downloadFile = async (
 
 export const exportService = {
   async exportPDF(filters?: ExportFilters): Promise<void> {
-    const filename = `relatorio-coletas-${new Date().toISOString().split('T')[0]}.pdf`;
+    const filename = `relatorio-pesagens-${new Date().toISOString().split('T')[0]}.pdf`;
     await downloadFile('/dashboard/export/pdf', filename, filters);
   },
 
   async exportCSV(filters?: ExportFilters): Promise<void> {
-    const filename = `relatorio-coletas-${new Date().toISOString().split('T')[0]}.csv`;
+    const filename = `relatorio-pesagens-${new Date().toISOString().split('T')[0]}.csv`;
     await downloadFile('/dashboard/export/csv', filename, filters);
   },
 };

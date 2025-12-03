@@ -499,7 +499,7 @@ export const GravimetricDataScreen: React.FC = () => {
           <EmptyState
             icon="scale-outline"
             title="Nenhum Dado Registrado"
-            message="Adicione dados gravimétricos para esta coleta"
+            message="Adicione dados gravimétricos para esta pesagem"
             actionLabel="Adicionar Primeiro Dado"
             onAction={() => setIsAdding(true)}
           />

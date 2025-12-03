@@ -55,7 +55,7 @@ export const collectionsService = {
       if (!response.data.data) throw new Error('Invalid response');
       return response.data.data;
     } catch (error) {
-      const errorMessage = (error as { message?: string })?.message || 'Erro ao atualizar coleta';
+      const errorMessage = (error as { message?: string })?.message || 'Erro ao atualizar pesagem';
       throw new Error(errorMessage);
     }
   },
@@ -64,7 +64,7 @@ export const collectionsService = {
     try {
       await api.delete(`/collections/${id}`);
     } catch (error) {
-      const errorMessage = (error as { message?: string })?.message || 'Erro ao excluir coleta';
+      const errorMessage = (error as { message?: string })?.message || 'Erro ao excluir pesagem';
       throw new Error(errorMessage);
     }
   },

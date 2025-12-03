@@ -129,7 +129,7 @@ export class DashboardService {
       'wasteType.category': string;
     }>;
 
-    const totalCollections = countResults.reduce((sum, r) => sum + parseInt(r.count), 0);
+    const totalWeight = await this.getTotalWeightOptimized(whereConditions);
 
     const distribution: WasteTypeDistribution[] = await Promise.all(
       countResults.map(async (result) => {
@@ -150,18 +150,20 @@ export class DashboardService {
           raw: true,
         }) as unknown as { total: string } | null;
 
+        const itemWeight = weightResult ? parseFloat(weightResult.total) : 0;
+
         return {
           wasteTypeId: result.wasteTypeId,
           wasteTypeName: result['wasteType.name'],
           category: result['wasteType.category'],
           count: parseInt(result.count),
-          totalWeightKg: weightResult ? parseFloat(weightResult.total) : 0,
-          percentage: totalCollections > 0 ? (parseInt(result.count) / totalCollections) * 100 : 0,
+          totalWeightKg: itemWeight,
+          percentage: totalWeight > 0 ? (itemWeight / totalWeight) * 100 : 0,
         };
       })
     );
 
-    return distribution.sort((a, b) => b.count - a.count);
+    return distribution.sort((a, b) => b.totalWeightKg - a.totalWeightKg);
   }
 
   private async getTreatmentTypeDistribution(
@@ -189,7 +191,7 @@ export class DashboardService {
       count: string;
     }>;
 
-    const totalCollections = countResults.reduce((sum, r) => sum + parseInt(r.count), 0);
+    const totalWeight = await this.getTotalWeightOptimized(whereConditions);
 
     const distribution: TreatmentTypeDistribution[] = await Promise.all(
       countResults.map(async (result) => {
@@ -210,11 +212,13 @@ export class DashboardService {
           raw: true,
         }) as unknown as { total: string } | null;
 
+        const itemWeight = weightResult ? parseFloat(weightResult.total) : 0;
+
         return {
           treatmentType: result.treatmentType,
           count: parseInt(result.count),
-          totalWeightKg: weightResult ? parseFloat(weightResult.total) : 0,
-          percentage: totalCollections > 0 ? (parseInt(result.count) / totalCollections) * 100 : 0,
+          totalWeightKg: itemWeight,
+          percentage: totalWeight > 0 ? (itemWeight / totalWeight) * 100 : 0,
         };
       })
     );

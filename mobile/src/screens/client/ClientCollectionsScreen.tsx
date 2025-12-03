@@ -47,7 +47,7 @@ export const ClientCollectionsScreen: React.FC = () => {
       style={styles.collectionCard}
       onPress={() => handleCollectionPress(item)}
       accessible={true}
-      accessibilityLabel={`Coleta de ${item.wasteType?.name}, ${formatDate(item.collectionDate)}, ${getStatusLabel(item.status)}`}
+      accessibilityLabel={`Pesagem de ${item.wasteType?.name}, ${formatDate(item.collectionDate)}, ${getStatusLabel(item.status)}`}
       accessibilityHint="Toque para ver detalhes"
     >
       <View style={styles.collectionHeader}>
@@ -110,7 +110,7 @@ export const ClientCollectionsScreen: React.FC = () => {
       <SafeAreaView style={styles.loadingContainer} edges={['bottom']}>
         <ActivityIndicator size="large" color={colors.primary[600]} />
         <Text style={[styles.loadingText, { fontSize: 16 * fontMultiplier }]}>
-          Carregando coletas...
+          Carregando pesagens...
         </Text>
       </SafeAreaView>
     );
@@ -121,7 +121,7 @@ export const ClientCollectionsScreen: React.FC = () => {
       <SafeAreaView style={styles.errorContainer} edges={['bottom']}>
         <Ionicons name="alert-circle-outline" size={64} color={colors.error.main} />
         <Text style={[styles.errorText, { fontSize: 16 * fontMultiplier }]}>
-          Erro ao carregar coletas
+          Erro ao carregar pesagens
         </Text>
         <TouchableOpacity style={styles.retryButton} onPress={onRefresh}>
           <Text style={[styles.retryButtonText, { fontSize: 16 * fontMultiplier }]}>
@@ -139,10 +139,10 @@ export const ClientCollectionsScreen: React.FC = () => {
     <SafeAreaView style={styles.container} edges={['bottom']}>
       <View style={styles.header}>
         <Text style={[styles.title, { fontSize: 16 * fontMultiplier * 1.5 }]}>
-          Minhas Coletas
+          Minhas Pesagens
         </Text>
         <Text style={[styles.subtitle, { fontSize: 16 * fontMultiplier }]}>
-          {pagination?.total || 0} coletas registradas
+          {pagination?.total || 0} pesagens registradas
         </Text>
       </View>
 
@@ -158,12 +158,12 @@ export const ClientCollectionsScreen: React.FC = () => {
           <View style={styles.emptyState}>
             <Ionicons name="cube-outline" size={64} color={colors.neutral[400]} />
             <Text style={[styles.emptyText, { fontSize: 16 * fontMultiplier }]}>
-              Nenhuma coleta registrada ainda
+              Nenhuma pesagem registrada ainda
             </Text>
           </View>
         }
         accessible={true}
-        accessibilityLabel="Lista de coletas"
+        accessibilityLabel="Lista de pesagens"
       />
 
       <TouchableOpacity
@@ -171,8 +171,8 @@ export const ClientCollectionsScreen: React.FC = () => {
         onPress={() => navigation.navigate('AddCollection')}
         accessible={true}
         accessibilityRole="button"
-        accessibilityLabel="Adicionar coleta"
-        accessibilityHint="Toque para adicionar uma nova coleta"
+        accessibilityLabel="Adicionar pesagem"
+        accessibilityHint="Toque para adicionar uma nova pesagem"
       >
         <Ionicons name="add" size={24} color={colors.white} />
       </TouchableOpacity>

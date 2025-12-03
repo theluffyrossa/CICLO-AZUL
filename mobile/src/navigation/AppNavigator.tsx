@@ -41,7 +41,7 @@ const MainTabs = (): React.ReactElement => {
 
           if (route.name === 'Dashboard') {
             iconName = focused ? 'stats-chart' : 'stats-chart-outline';
-          } else if (route.name === 'Coletas') {
+          } else if (route.name === 'Pesagens') {
             iconName = focused ? 'list' : 'list-outline';
           } else if (route.name === 'Validação') {
             iconName = focused ? 'checkmark-circle' : 'checkmark-circle-outline';
@@ -93,11 +93,11 @@ const MainTabs = (): React.ReactElement => {
         }}
       />
       <Tab.Screen
-        name="Coletas"
+        name="Pesagens"
         component={CollectionsListScreen}
         options={{
-          title: 'Coletas',
-          tabBarAccessibilityLabel: 'Coletas, lista de todas as coletas registradas',
+          title: 'Pesagens',
+          tabBarAccessibilityLabel: 'Pesagens, lista de todas as pesagens registradas',
         }}
       />
       {isAdmin && (
@@ -106,7 +106,7 @@ const MainTabs = (): React.ReactElement => {
           component={PendingCollectionsScreen}
           options={{
             title: 'Validação',
-            tabBarAccessibilityLabel: 'Validação, coletas pendentes de aprovação',
+            tabBarAccessibilityLabel: 'Validação, pesagens pendentes de aprovação',
           }}
         />
       )}
@@ -160,7 +160,7 @@ export const AppNavigator = (): React.ReactElement => {
               component={NewCollectionScreen}
               options={{
                 headerShown: true,
-                title: 'Nova Coleta',
+                title: 'Nova Pesagem',
                 headerStyle: { backgroundColor: colors.primary[600] },
                 headerTintColor: colors.white,
               }}
@@ -170,7 +170,7 @@ export const AppNavigator = (): React.ReactElement => {
               component={CollectionDetailScreen}
               options={{
                 headerShown: true,
-                title: 'Detalhes da Coleta',
+                title: 'Detalhes da Pesagem',
                 headerStyle: { backgroundColor: colors.primary[600] },
                 headerTintColor: colors.white,
               }}
@@ -180,7 +180,7 @@ export const AppNavigator = (): React.ReactElement => {
               component={EditCollectionScreen}
               options={{
                 headerShown: true,
-                title: 'Editar Coleta',
+                title: 'Editar Pesagem',
                 headerStyle: { backgroundColor: colors.primary[600] },
                 headerTintColor: colors.white,
               }}
@@ -240,7 +240,7 @@ export const AppNavigator = (): React.ReactElement => {
               component={CollectionApprovalScreen}
               options={{
                 headerShown: true,
-                title: 'Aprovar Coleta',
+                title: 'Aprovar Pesagem',
                 headerStyle: { backgroundColor: colors.primary[600] },
                 headerTintColor: colors.white,
               }}

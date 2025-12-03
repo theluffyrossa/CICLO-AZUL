@@ -43,13 +43,13 @@ const CollectionsStack = () => (
     <Stack.Screen
       name="ClientCollectionsList"
       component={ClientCollectionsScreen}
-      options={{ title: 'Coletas' }}
+      options={{ title: 'Pesagens' }}
     />
     <Stack.Screen
       name="AddCollection"
       component={NewCollectionScreen}
       options={{
-        title: 'Nova Coleta',
+        title: 'Nova Pesagem',
         headerShown: true,
         headerStyle: {
           backgroundColor: colors.primary[600],
@@ -64,7 +64,7 @@ const CollectionsStack = () => (
       name="ClientCollectionDetail"
       component={ClientCollectionDetailScreen}
       options={{
-        title: 'Detalhes da Coleta',
+        title: 'Detalhes da Pesagem',
         headerShown: true,
         headerStyle: {
           backgroundColor: colors.primary[600],
@@ -156,9 +156,9 @@ export const ClientNavigator: React.FC = () => {
         name="CollectionsTab"
         component={CollectionsStack}
         options={{
-          tabBarLabel: 'Coletas',
-          tabBarAccessibilityLabel: 'Coletas',
-          tabBarAccessibilityHint: 'Navegar para a lista de coletas',
+          tabBarLabel: 'Pesagens',
+          tabBarAccessibilityLabel: 'Pesagens',
+          tabBarAccessibilityHint: 'Navegar para a lista de pesagens',
         }}
       />
       <Tab.Screen

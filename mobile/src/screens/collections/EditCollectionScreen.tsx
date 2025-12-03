@@ -107,11 +107,11 @@ export const EditCollectionScreen: React.FC<EditCollectionScreenProps> = ({ navi
       queryClient.invalidateQueries({ queryKey: ['clientCollections'] });
       queryClient.invalidateQueries({ queryKey: ['dashboardStats'] });
 
-      AccessibilityInfo.announceForAccessibility('Coleta atualizada com sucesso');
+      AccessibilityInfo.announceForAccessibility('Pesagem atualizada com sucesso');
 
       Alert.alert(
         'Sucesso',
-        'Coleta atualizada com sucesso!',
+        'Pesagem atualizada com sucesso!',
         [
           {
             text: 'OK',
@@ -122,7 +122,7 @@ export const EditCollectionScreen: React.FC<EditCollectionScreenProps> = ({ navi
     },
     onError: (error: unknown) => {
       console.error('Error updating collection:', error);
-      const errorMessage = (error as { message?: string })?.message || 'Erro ao atualizar coleta';
+      const errorMessage = (error as { message?: string })?.message || 'Erro ao atualizar pesagem';
       Alert.alert('Erro', errorMessage);
       AccessibilityInfo.announceForAccessibility(`Erro: ${errorMessage}`);
     },
@@ -202,7 +202,7 @@ export const EditCollectionScreen: React.FC<EditCollectionScreenProps> = ({ navi
     }
 
     if (!collection) {
-      Alert.alert('Erro', 'Dados da coleta não encontrados');
+      Alert.alert('Erro', 'Dados da pesagem não encontrados');
       return;
     }
 
@@ -234,7 +234,7 @@ export const EditCollectionScreen: React.FC<EditCollectionScreenProps> = ({ navi
       <ScrollView
         contentContainerStyle={styles.contentContainer}
         accessibilityRole="scrollbar"
-        accessibilityLabel="Formulário de edição de coleta"
+        accessibilityLabel="Formulário de edição de pesagem"
       >
       <View style={styles.section}>
         <Text style={[styles.sectionTitle, { color: COLORS.text }]}>
@@ -394,7 +394,7 @@ export const EditCollectionScreen: React.FC<EditCollectionScreenProps> = ({ navi
           style={[styles.textArea, { backgroundColor: COLORS.surface, borderColor: COLORS.border, color: COLORS.text }]}
           value={notes}
           onChangeText={setNotes}
-          placeholder="Digite observações sobre a coleta"
+          placeholder="Digite observações sobre a pesagem"
           placeholderTextColor={COLORS.textSecondary}
           multiline
           numberOfLines={4}
@@ -412,13 +412,13 @@ export const EditCollectionScreen: React.FC<EditCollectionScreenProps> = ({ navi
           onPress={handleSubmit}
           disabled={updateCollectionMutation.isPending}
           accessibilityRole="button"
-          accessibilityLabel="Atualizar coleta"
+          accessibilityLabel="Atualizar pesagem"
           accessibilityState={{ disabled: updateCollectionMutation.isPending }}
         >
           {updateCollectionMutation.isPending ? (
             <ActivityIndicator color={COLORS.background} />
           ) : (
-            <Text style={styles.submitButtonText}>Atualizar Coleta</Text>
+            <Text style={styles.submitButtonText}>Atualizar Pesagem</Text>
           )}
         </TouchableOpacity>
 

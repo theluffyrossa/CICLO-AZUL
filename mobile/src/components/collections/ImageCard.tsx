@@ -36,7 +36,7 @@ export const ImageCard: React.FC<ImageCardProps> = ({
         style={styles.image}
         resizeMode="cover"
         accessible={true}
-        accessibilityLabel={accessibilityLabel || 'Foto da coleta'}
+        accessibilityLabel={accessibilityLabel || 'Foto da pesagem'}
         accessibilityRole="image"
       />
 

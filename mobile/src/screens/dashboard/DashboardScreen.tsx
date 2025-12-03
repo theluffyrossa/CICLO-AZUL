@@ -242,7 +242,7 @@ export const DashboardScreen = (): React.JSX.Element => {
             <Text style={styles.exportTitle}>Exportar Relatórios</Text>
           </View>
           <Text style={styles.exportDescription}>
-            Baixe os dados das coletas filtradas em PDF ou CSV
+            Baixe os dados das pesagens filtradas em PDF ou CSV
           </Text>
           <View style={styles.exportButtons}>
             <View style={styles.exportButton}>
@@ -284,11 +284,11 @@ export const DashboardScreen = (): React.JSX.Element => {
             style={styles.statCard}
             accessible={true}
             accessibilityRole="summary"
-            accessibilityLabel={`Total de coletas: ${data?.summary.totalCollections || 0}`}
+            accessibilityLabel={`Total de pesagens: ${data?.summary.totalCollections || 0}`}
           >
             <Ionicons name="list" size={32} color={colors.primary[600]} />
             <Text style={styles.statValue}>{data?.summary.totalCollections || 0}</Text>
-            <Text style={styles.statLabel}>Coletas</Text>
+            <Text style={styles.statLabel}>Pesagens</Text>
           </Card>
 
           <Card
@@ -368,7 +368,7 @@ export const DashboardScreen = (): React.JSX.Element => {
                   key={item.wasteTypeId}
                   style={styles.wasteTypeItem}
                   accessible={true}
-                  accessibilityLabel={`${cleanWasteTypeName(item.wasteTypeName)}: ${formatNumber(item.totalWeightKg, 2)} quilogramas, ${formatNumber(item.percentage, 1)} porcento do total, ${item.count} coletas`}
+                  accessibilityLabel={`${cleanWasteTypeName(item.wasteTypeName)}: ${formatNumber(item.totalWeightKg, 2)} quilogramas, ${formatNumber(item.percentage, 1)} porcento do total, ${item.count} pesagens`}
                 >
                   <View style={styles.wasteTypeHeader}>
                     <View style={styles.wasteTypeNameContainer}>
@@ -390,7 +390,7 @@ export const DashboardScreen = (): React.JSX.Element => {
                       <Text style={[styles.wasteWeight, { color: getWasteTypeColor(index) }]}>
                         {formatNumber(item.totalWeightKg, 1)} kg
                       </Text>
-                      <Text style={styles.wasteCount}>{item.count} coletas</Text>
+                      <Text style={styles.wasteCount}>{item.count} pesagens</Text>
                     </View>
                   </View>
                 </View>
@@ -441,7 +441,7 @@ export const DashboardScreen = (): React.JSX.Element => {
                   key={item.treatmentType}
                   style={styles.treatmentItem}
                   accessible={true}
-                  accessibilityLabel={`${translateTreatmentType(item.treatmentType as TreatmentType)}: ${formatNumber(item.totalWeightKg, 2)} quilogramas, ${formatNumber(item.percentage, 1)} porcento do total, ${item.count} coletas`}
+                  accessibilityLabel={`${translateTreatmentType(item.treatmentType as TreatmentType)}: ${formatNumber(item.totalWeightKg, 2)} quilogramas, ${formatNumber(item.percentage, 1)} porcento do total, ${item.count} pesagens`}
                 >
                   <View style={styles.treatmentHeader}>
                     <View style={styles.treatmentNameRow}>
@@ -466,7 +466,7 @@ export const DashboardScreen = (): React.JSX.Element => {
                           },
                         ]}
                       >
-                        {item.count} coletas
+                        {item.count} pesagens
                       </Text>
                     </View>
                   </View>

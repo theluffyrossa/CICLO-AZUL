@@ -74,7 +74,7 @@ export const translateGravimetricDataSource = (source: GravimetricDataSource): s
 
 export const translateImageStage = (stage: ImageStage): string => {
   const translations: Record<ImageStage, string> = {
-    [ImageStage.COLLECTION]: 'Coleta',
+    [ImageStage.COLLECTION]: 'Pesagem',
     [ImageStage.RECEPTION]: 'Recepção',
     [ImageStage.SORTING]: 'Triagem',
   };

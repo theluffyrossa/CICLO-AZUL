@@ -67,7 +67,7 @@ export const CollectionsListScreen = (): React.JSX.Element => {
   const handleRefresh = (): void => {
     setPage(1);
     refetch();
-    AccessibilityInfo.announceForAccessibility('Atualizando lista de coletas');
+    AccessibilityInfo.announceForAccessibility('Atualizando lista de pesagens');
   };
 
   const getTotalWeight = (collection: Collection): number => {
@@ -81,12 +81,12 @@ export const CollectionsListScreen = (): React.JSX.Element => {
       style={styles.emptyContainer}
       accessible={true}
       accessibilityRole="text"
-      accessibilityLabel="Nenhuma coleta registrada ainda"
+      accessibilityLabel="Nenhuma pesagem registrada ainda"
     >
       <Ionicons name="leaf-outline" size={64} color={colors.neutral[400]} />
-      <Text style={styles.emptyText}>Nenhuma coleta registrada</Text>
+      <Text style={styles.emptyText}>Nenhuma pesagem registrada</Text>
       <Text style={styles.emptySubtext}>
-        Toque no botão + para registrar sua primeira coleta
+        Toque no botão + para registrar sua primeira pesagem
       </Text>
     </View>
   );
@@ -108,7 +108,7 @@ export const CollectionsListScreen = (): React.JSX.Element => {
         onPress={() => handleCollectionPress(item)}
         accessible={true}
         accessibilityRole="button"
-        accessibilityLabel={`Coleta ${index + 1}: ${item.client?.name}, ${item.wasteType?.name}, ${statusLabel}, ${formattedDate}, Peso total: ${formatNumber(totalWeight, 2)} quilogramas`}
+        accessibilityLabel={`Pesagem ${index + 1}: ${item.client?.name}, ${item.wasteType?.name}, ${statusLabel}, ${formattedDate}, Peso total: ${formatNumber(totalWeight, 2)} quilogramas`}
         accessibilityHint="Toque duas vezes para ver detalhes"
       >
         <Card style={styles.collectionCard}>
@@ -202,7 +202,7 @@ export const CollectionsListScreen = (): React.JSX.Element => {
   };
 
   if (isLoading) {
-    return <Loading message="Carregando coletas..." />;
+    return <Loading message="Carregando pesagens..." />;
   }
 
   return (
@@ -218,11 +218,11 @@ export const CollectionsListScreen = (): React.JSX.Element => {
             refreshing={isRefetching}
             onRefresh={handleRefresh}
             colors={[colors.primary[600]]}
-            accessibilityLabel="Puxe para atualizar lista de coletas"
+            accessibilityLabel="Puxe para atualizar lista de pesagens"
           />
         }
         accessibilityRole="list"
-        accessibilityLabel={`Lista de coletas. Total: ${data?.pagination.total || 0} coletas`}
+        accessibilityLabel={`Lista de pesagens. Total: ${data?.pagination.total || 0} pesagens`}
       />
 
       {data && data.pagination.total > 0 && (
@@ -230,11 +230,11 @@ export const CollectionsListScreen = (): React.JSX.Element => {
           style={styles.paginationInfo}
           accessible={true}
           accessibilityRole="text"
-          accessibilityLabel={`Mostrando ${data.data.length} de ${data.pagination.total} coletas. Página ${data.pagination.page} de ${data.pagination.totalPages}`}
+          accessibilityLabel={`Mostrando ${data.data.length} de ${data.pagination.total} pesagens. Página ${data.pagination.page} de ${data.pagination.totalPages}`}
         >
           <Ionicons name="information-circle" size={16} color={colors.text.secondary} />
           <Text style={styles.paginationText}>
-            {data.data.length} de {data.pagination.total} coletas
+            {data.data.length} de {data.pagination.total} pesagens
           </Text>
         </View>
       )}
@@ -242,8 +242,8 @@ export const CollectionsListScreen = (): React.JSX.Element => {
       <FloatingActionButton
         icon="add"
         onPress={handleNewCollection}
-        accessibilityLabel="Criar nova coleta"
-        accessibilityHint="Toque duas vezes para criar uma nova coleta"
+        accessibilityLabel="Criar nova pesagem"
+        accessibilityHint="Toque duas vezes para criar uma nova pesagem"
       />
     </SafeAreaView>
   );

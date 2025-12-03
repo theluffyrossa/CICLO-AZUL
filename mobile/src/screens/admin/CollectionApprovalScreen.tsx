@@ -50,8 +50,8 @@ export const CollectionApprovalScreen: React.FC = () => {
       const data = await collectionsService.getCollectionById(collectionId);
       setCollection(data);
     } catch (error) {
-      console.error('Erro ao carregar coleta:', error);
-      Alert.alert('Erro', 'Não foi possível carregar os dados da coleta');
+      console.error('Erro ao carregar pesagem:', error);
+      Alert.alert('Erro', 'Não foi possível carregar os dados da pesagem');
       navigation.goBack();
     } finally {
       setLoading(false);
@@ -61,7 +61,7 @@ export const CollectionApprovalScreen: React.FC = () => {
   const handleApprove = () => {
     Alert.alert(
       'Confirmar Aprovação',
-      'Tem certeza que deseja aprovar esta coleta?',
+      'Tem certeza que deseja aprovar esta pesagem?',
       [
         { text: 'Cancelar', style: 'cancel' },
         {
@@ -70,12 +70,12 @@ export const CollectionApprovalScreen: React.FC = () => {
             try {
               setProcessing(true);
               await collectionsService.approveCollection(collectionId);
-              Alert.alert('Sucesso', 'Coleta aprovada com sucesso', [
+              Alert.alert('Sucesso', 'Pesagem aprovada com sucesso', [
                 { text: 'OK', onPress: () => navigation.goBack() },
               ]);
             } catch (error) {
-              console.error('Erro ao aprovar coleta:', error);
-              Alert.alert('Erro', 'Não foi possível aprovar a coleta');
+              console.error('Erro ao aprovar pesagem:', error);
+              Alert.alert('Erro', 'Não foi possível aprovar a pesagem');
             } finally {
               setProcessing(false);
             }
@@ -95,12 +95,12 @@ export const CollectionApprovalScreen: React.FC = () => {
       setProcessing(true);
       setShowRejectModal(false);
       await collectionsService.rejectCollection(collectionId, rejectionReason);
-      Alert.alert('Sucesso', 'Coleta rejeitada com sucesso', [
+      Alert.alert('Sucesso', 'Pesagem rejeitada com sucesso', [
         { text: 'OK', onPress: () => navigation.goBack() },
       ]);
     } catch (error) {
-      console.error('Erro ao rejeitar coleta:', error);
-      Alert.alert('Erro', 'Não foi possível rejeitar a coleta');
+      console.error('Erro ao rejeitar pesagem:', error);
+      Alert.alert('Erro', 'Não foi possível rejeitar a pesagem');
     } finally {
       setProcessing(false);
       setRejectionReason('');
@@ -146,7 +146,7 @@ export const CollectionApprovalScreen: React.FC = () => {
     return (
       <SafeAreaView style={styles.centerContainer} edges={['bottom']}>
         <ActivityIndicator size="large" color={colors.primary[600]} />
-        <Text style={styles.loadingText}>Carregando dados da coleta...</Text>
+        <Text style={styles.loadingText}>Carregando dados da pesagem...</Text>
       </SafeAreaView>
     );
   }
@@ -154,7 +154,7 @@ export const CollectionApprovalScreen: React.FC = () => {
   if (!collection) {
     return (
       <SafeAreaView style={styles.centerContainer} edges={['bottom']}>
-        <Text style={styles.errorText}>Coleta não encontrada</Text>
+        <Text style={styles.errorText}>Pesagem não encontrada</Text>
       </SafeAreaView>
     );
   }
@@ -165,7 +165,7 @@ export const CollectionApprovalScreen: React.FC = () => {
     <SafeAreaView style={styles.container} edges={['bottom']}>
       <ScrollView contentContainerStyle={styles.content}>
         <View style={styles.header}>
-          <Text style={styles.title}>Detalhes da Coleta</Text>
+          <Text style={styles.title}>Detalhes da Pesagem</Text>
           {getStatusBadge(collection.approvalStatus)}
         </View>
 
@@ -186,9 +186,9 @@ export const CollectionApprovalScreen: React.FC = () => {
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Dados da Coleta</Text>
+          <Text style={styles.sectionTitle}>Dados da Pesagem</Text>
           <View style={styles.infoRow}>
-            <Text style={styles.label}>Data da Coleta:</Text>
+            <Text style={styles.label}>Data da Pesagem:</Text>
             <Text style={styles.value}>{formatDate(collection.collectionDate)}</Text>
           </View>
           <View style={styles.infoRow}>
@@ -275,25 +275,25 @@ export const CollectionApprovalScreen: React.FC = () => {
         {isPending && (
           <View style={styles.actionsContainer}>
             <Button
-              title="Aprovar Coleta"
+              title="Aprovar Pesagem"
               onPress={handleApprove}
               disabled={processing}
               loading={processing}
               variant="primary"
               size="lg"
               fullWidth
-              accessibilityLabel="Aprovar coleta"
-              accessibilityHint="Toca para aprovar esta coleta e incluí-la no dashboard"
+              accessibilityLabel="Aprovar pesagem"
+              accessibilityHint="Toca para aprovar esta pesagem e incluí-la no dashboard"
             />
             <Button
-              title="Rejeitar Coleta"
+              title="Rejeitar Pesagem"
               onPress={() => setShowRejectModal(true)}
               disabled={processing}
               variant="danger"
               size="lg"
               fullWidth
-              accessibilityLabel="Rejeitar coleta"
-              accessibilityHint="Toca para rejeitar esta coleta e informar o motivo"
+              accessibilityLabel="Rejeitar pesagem"
+              accessibilityHint="Toca para rejeitar esta pesagem e informar o motivo"
             />
           </View>
         )}
@@ -309,7 +309,7 @@ export const CollectionApprovalScreen: React.FC = () => {
           <View style={styles.modalOverlay}>
             <TouchableWithoutFeedback>
               <View style={styles.modalContent}>
-                <Text style={styles.modalTitle}>Rejeitar Coleta</Text>
+                <Text style={styles.modalTitle}>Rejeitar Pesagem</Text>
                 <Text style={styles.modalSubtitle}>
                   Informe o motivo da rejeição (mínimo 10 caracteres):
                 </Text>
@@ -345,7 +345,7 @@ export const CollectionApprovalScreen: React.FC = () => {
                     variant="danger"
                     size="md"
                     fullWidth
-                    accessibilityLabel="Confirmar rejeição da coleta"
+                    accessibilityLabel="Confirmar rejeição da pesagem"
                     accessibilityHint="Toca para confirmar a rejeição com o motivo informado"
                   />
                 </View>

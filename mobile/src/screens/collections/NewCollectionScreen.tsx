@@ -85,7 +85,7 @@ export const NewCollectionScreen: React.FC = () => {
 
   useEffect(() => {
     getLocation();
-    AccessibilityInfo.announceForAccessibility('Nova Coleta - Preencha os dados da pesagem');
+    AccessibilityInfo.announceForAccessibility('Nova Pesagem - Preencha os dados da pesagem');
   }, []);
 
   const getLocation = async (): Promise<void> => {
@@ -272,10 +272,10 @@ export const NewCollectionScreen: React.FC = () => {
       newErrors.responsibleName = 'Informe o responsável pela pesagem';
     }
     if (!collectionDate) {
-      newErrors.collectionDate = 'Selecione a data da coleta';
+      newErrors.collectionDate = 'Selecione a data da pesagem';
     }
     if (!weightKg || weightKg.trim() === '') {
-      newErrors.weightKg = 'Informe o peso da coleta';
+      newErrors.weightKg = 'Informe o peso da pesagem';
     } else {
       const weight = parseFloat(weightKg.replace(',', '.'));
       if (isNaN(weight) || weight <= 0) {
@@ -283,7 +283,7 @@ export const NewCollectionScreen: React.FC = () => {
       }
     }
     if (imageUris.length === 0) {
-      newErrors.image = 'É obrigatório adicionar pelo menos uma foto da coleta';
+      newErrors.image = 'É obrigatório adicionar pelo menos uma foto da pesagem';
     } else if (imageUris.length > 6) {
       newErrors.image = 'Máximo de 6 fotos permitido';
     }
@@ -291,7 +291,7 @@ export const NewCollectionScreen: React.FC = () => {
     const thirtyDaysAgo = new Date();
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
     if (collectionDate < thirtyDaysAgo) {
-      AccessibilityInfo.announceForAccessibility('Atenção: Data de coleta com mais de 30 dias atrás');
+      AccessibilityInfo.announceForAccessibility('Atenção: Data de pesagem com mais de 30 dias atrás');
     }
 
     setErrors(newErrors);
@@ -338,17 +338,17 @@ export const NewCollectionScreen: React.FC = () => {
     try {
       if (isOnline) {
         if (imageUris.length === 0) {
-          Alert.alert('Erro', 'É necessário adicionar pelo menos uma foto da coleta');
+          Alert.alert('Erro', 'É necessário adicionar pelo menos uma foto da pesagem');
           setIsSubmitting(false);
           return;
         }
 
-        AccessibilityInfo.announceForAccessibility('Criando coleta...');
+        AccessibilityInfo.announceForAccessibility('Criando pesagem...');
 
         const collection = await collectionsService.createCollection(collectionData);
 
         AccessibilityInfo.announceForAccessibility(
-          `Coleta criada. Enviando ${imageUris.length} foto(s)...`
+          `Pesagem criada. Enviando ${imageUris.length} foto(s)...`
         );
         setIsUploadingImage(true);
 
@@ -374,9 +374,9 @@ export const NewCollectionScreen: React.FC = () => {
           },
         });
 
-        AccessibilityInfo.announceForAccessibility('Coleta criada com sucesso');
+        AccessibilityInfo.announceForAccessibility('Pesagem criada com sucesso');
 
-        Alert.alert('Sucesso', 'Coleta registrada com sucesso!', [
+        Alert.alert('Sucesso', 'Pesagem registrada com sucesso!', [
           {
             text: 'OK',
             onPress: () => {
@@ -393,7 +393,7 @@ export const NewCollectionScreen: React.FC = () => {
           imageUris,
         });
 
-        Alert.alert('Salvo', 'Coleta salva. Será sincronizada quando estiver online.', [
+        Alert.alert('Salvo', 'Pesagem salva. Será sincronizada quando estiver online.', [
           {
             text: 'OK',
             onPress: () => {
@@ -405,7 +405,7 @@ export const NewCollectionScreen: React.FC = () => {
         ]);
       }
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Erro ao criar coleta';
+      const message = error instanceof Error ? error.message : 'Erro ao criar pesagem';
       Alert.alert('Erro', message);
       AccessibilityInfo.announceForAccessibility(`Erro: ${message}`);
       setIsUploadingImage(false);
@@ -433,7 +433,7 @@ export const NewCollectionScreen: React.FC = () => {
       <ScrollView
         contentContainerStyle={styles.contentContainer}
         accessibilityRole="scrollbar"
-        accessibilityLabel="Formulário de nova coleta"
+        accessibilityLabel="Formulário de nova pesagem"
       >
       {isAdmin && (
         <View style={styles.section}>
@@ -670,7 +670,7 @@ export const NewCollectionScreen: React.FC = () => {
 
       <View style={styles.section}>
         <Text style={[styles.sectionTitle, { color: COLORS.text }]}>
-          Fotos da Coleta * ({imageUris.length}/6)
+          Fotos da Pesagem * ({imageUris.length}/6)
         </Text>
 
         {imageUris.length > 0 && (
@@ -681,7 +681,7 @@ export const NewCollectionScreen: React.FC = () => {
                   source={{ uri }}
                   style={styles.imageGridPreview}
                   resizeMode="cover"
-                  accessibilityLabel={`Foto ${index + 1} da coleta`}
+                  accessibilityLabel={`Foto ${index + 1} da pesagem`}
                 />
                 <TouchableOpacity
                   style={[styles.removeImageIconButton, { backgroundColor: COLORS.error }]}
@@ -737,7 +737,7 @@ export const NewCollectionScreen: React.FC = () => {
           ]}
           value={notes}
           onChangeText={setNotes}
-          placeholder="Digite observações sobre a coleta"
+          placeholder="Digite observações sobre a pesagem"
           placeholderTextColor={COLORS.textSecondary}
           multiline
           numberOfLines={4}
@@ -755,13 +755,13 @@ export const NewCollectionScreen: React.FC = () => {
           onPress={handleSubmit}
           disabled={isSubmitting}
           accessibilityRole="button"
-          accessibilityLabel="Salvar coleta"
+          accessibilityLabel="Salvar pesagem"
           accessibilityState={{ disabled: isSubmitting }}
         >
           {isSubmitting ? (
             <ActivityIndicator color={COLORS.background} />
           ) : (
-            <Text style={styles.submitButtonText}>Salvar Coleta</Text>
+            <Text style={styles.submitButtonText}>Salvar Pesagem</Text>
           )}
         </TouchableOpacity>
 

@@ -45,7 +45,7 @@ export const PendingCollectionsScreen: React.FC = () => {
       setHasMore(response.pagination.page < response.pagination.totalPages);
       setPage(pageNum);
     } catch (error) {
-      console.error('Erro ao carregar coletas pendentes:', error);
+      console.error('Erro ao carregar pesagens pendentes:', error);
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -114,7 +114,7 @@ export const PendingCollectionsScreen: React.FC = () => {
     return (
       <SafeAreaView style={styles.centerContainer} edges={['bottom']}>
         <ActivityIndicator size="large" color={colors.primary[600]} />
-        <Text style={styles.loadingText}>Carregando coletas pendentes...</Text>
+        <Text style={styles.loadingText}>Carregando pesagens pendentes...</Text>
       </SafeAreaView>
     );
   }
@@ -146,10 +146,10 @@ export const PendingCollectionsScreen: React.FC = () => {
               />
               <Text style={styles.emptyTitle}>Tudo validado!</Text>
               <Text style={styles.emptyText}>
-                Não há coletas pendentes de aprovação no momento
+                Não há pesagens pendentes de aprovação no momento
               </Text>
               <Text style={styles.emptySubtext}>
-                As novas coletas aparecerão aqui para validação
+                As novas pesagens aparecerão aqui para validação
               </Text>
             </View>
           ) : null
