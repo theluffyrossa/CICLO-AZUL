@@ -46,6 +46,8 @@ const TREATMENT_TYPES: Record<string, string> = {
   COMPOSTING: 'Compostagem',
   INCINERATION: 'Incineração',
   LANDFILL: 'Aterro',
+  REUSE: 'Reaproveitamento',
+  ANIMAL_FEEDING: 'Alimentação Animal',
 };
 
 const APPROVAL_STATUS: Record<string, string> = {
